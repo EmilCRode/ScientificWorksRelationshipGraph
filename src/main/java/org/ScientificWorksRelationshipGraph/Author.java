@@ -22,7 +22,7 @@ public class Author extends Entity{
     @Property("email")
     private String email;
     @Relationship(type="CREATED", direction=Relationship.OUTGOING)
-    private Work[] createdWorks;
+    private List<Work> createdWorks;
     @Relationship(type="AFFILIATED", direction=Relationship.UNDIRECTED)
     private List<Organization> affiliatedOrganizations;
     public Author(){
@@ -35,9 +35,13 @@ public class Author extends Entity{
         this.lastName = person.getLastName();
         this.email = person.getEmail();
         this.affiliatedOrganizations = new ArrayList<>();
-        for (Affiliation affiliation: person.getAffiliations()) {
-            this.affiliatedOrganizations.add(new Organization(affiliation));
+        List<Affiliation> affiliationsToProcess= person.getAffiliations();
+        if(affiliationsToProcess != null) {
+            for (Affiliation affiliation : affiliationsToProcess) {
+                this.affiliatedOrganizations.add(new Organization(affiliation));
+            }
         }
+        this.createdWorks = new ArrayList<>();
     }
 
     public String getFirstName() {
@@ -60,13 +64,15 @@ public class Author extends Entity{
         this.lastName = lastName;
     }
 
-    public Work[] getCreatedWorks() {
+    public List<Work> getCreatedWorks() {
         return createdWorks;
     }
 
-    public void setCreatedWorks(Work[] createdWorks) {
+    public void setCreatedWorks(List<Work> createdWorks) {
         this.createdWorks = createdWorks;
     }
+
+    public void addCreatedWork(Work work){ this.createdWorks.add(work); }
 
     public List<Organization> getAffiliatedOrganizations() {
         return affiliatedOrganizations;

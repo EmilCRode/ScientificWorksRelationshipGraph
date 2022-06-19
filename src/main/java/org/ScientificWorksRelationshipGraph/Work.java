@@ -13,7 +13,7 @@ import java.util.List;
 public class Work extends Entity{
     @Property
     private String title;
-    @Property
+    @Transient
     private Date publicationDate;
     /**
      * This Attribute is set by setting the publicationDate
@@ -32,6 +32,10 @@ public class Work extends Entity{
     private int publicationDay;
     @Property
     private double confidence = 1.0;
+
+    @Property
+    private String fullGrobidDataAsString;
+
     @Relationship(type="AUTHORED", direction = Relationship.INCOMING)
     private List<Author> authors;
     @Relationship ("PUBLISHED_AT")
@@ -51,9 +55,13 @@ public class Work extends Entity{
         //Adding Authors to the work
         this.authors = new ArrayList<>();
         List<Person> authorsToProcess = bibItem.getFullAuthors();
+        System.out.println(authorsToProcess);
         if(authorsToProcess != null) {
+            Author currentAuthor;
             for (Person person : authorsToProcess) {
-                addAuthor(new Author(person));
+                currentAuthor = new Author(person);
+                currentAuthor.addCreatedWork(this);
+                addAuthor(currentAuthor);
             }
         }
         //Adding affiliated Organizations to the work
@@ -67,6 +75,7 @@ public class Work extends Entity{
 
 
         this.publicationDate = bibItem.getNormalizedPublicationDate();
+        this.fullGrobidDataAsString = bibItem.toString();
         this.citations = new ArrayList<Work>();
     }
 
