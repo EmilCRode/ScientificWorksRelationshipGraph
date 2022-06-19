@@ -34,7 +34,7 @@ public class Work extends Entity{
     private double confidence = 1.0;
 
     @Property
-    private String fullGrobidDataAsString;
+    private String fullGrobidDataString;
 
     @Relationship(type="AUTHORED", direction = Relationship.INCOMING)
     private List<Author> authors;
@@ -55,7 +55,9 @@ public class Work extends Entity{
         //Adding Authors to the work
         this.authors = new ArrayList<>();
         List<Person> authorsToProcess = bibItem.getFullAuthors();
+        //Logging Call
         System.out.println(authorsToProcess);
+        //
         if(authorsToProcess != null) {
             Author currentAuthor;
             for (Person person : authorsToProcess) {
@@ -75,7 +77,7 @@ public class Work extends Entity{
 
 
         this.publicationDate = bibItem.getNormalizedPublicationDate();
-        this.fullGrobidDataAsString = bibItem.toString();
+        this.fullGrobidDataString = bibItem.toString().replaceAll("\\w*='*null'*,*","");
         this.citations = new ArrayList<Work>();
     }
 
@@ -92,6 +94,10 @@ public class Work extends Entity{
     public void setConfidence(double confidence) { this.confidence = confidence; }
 
     public double getConfidence() { return confidence; }
+
+    public String getFullGrobidDataString() { return fullGrobidDataString; }
+
+    public void setFullGrobidDataString(String fullGrobidDataString) { this.fullGrobidDataString = fullGrobidDataString; }
 
     public List<Author> getAuthors() { return authors; }
 
@@ -131,8 +137,9 @@ public class Work extends Entity{
                 ", publicationMonth=" + publicationMonth +
                 ", publicationDay=" + publicationDay +
                 ", confidence=" + confidence +
+                ", fullGrobidDataString='" + fullGrobidDataString + '\'' +
                 ", authors=" + authors +
-                ", organisations=" + affiliatedOrganisations +
+                ", affiliatedOrganisations=" + affiliatedOrganisations +
                 ", citations=" + citations +
                 '}';
     }

@@ -60,20 +60,6 @@ public class GrobidCaller{
                     work.addCitation(currentWork);
                 }
                 neo4jHandler.createOrUpdate(work);
-
-            /*HoW it should work
-                } else if (process.equals("citation")) {
-                List<BibDataSet> citations = engine.processReferences(pdfFile, consolidate);
-                for (BibDataSet bib : citations) {
-                    if (bib.getResBib() != null){}
-                        //bibtex.append(bib.getResBib().toBibTeX());
-                }
-            } else {
-                System.err.println("Unknown selected process: " + process);
-                System.err.println("Usage: command process[header,citation] path_to_pdf");
-            }
-
-             */
         } catch (Exception e) {
             // If an exception is generated, print a stack trace
             e.printStackTrace();
