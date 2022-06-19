@@ -21,17 +21,17 @@ public class Organization extends Entity{
      */
     @Property
     private String affiliationString;
-    /**
-     * This field is the most specific location given.
-     * it is populated in this priority: Settlement > Region > Country.
-     * If a lower level location is missing the higher one is used.
-     */
     @Property("country")
     private String country;
     @Property("region")
     private String region;
     @Property("settlement")
     private String settlement;
+    /**
+     * This field is the most specific location given.
+     * it is populated in this priority: Settlement > Region > Country.
+     * If a lower level location is missing the higher one is used.
+     */
     @Property("location")
     private String location;
     @Property("acronym")
@@ -53,6 +53,7 @@ public class Organization extends Entity{
         this.location = country;
         if(region != null && region != ""){ this.location = region; }
         if(settlement != null && settlement != ""){ this.location = settlement; }
+
     }
 
     public String getName() {
