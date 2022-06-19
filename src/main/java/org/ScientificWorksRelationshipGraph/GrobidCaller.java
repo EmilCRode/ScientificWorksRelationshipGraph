@@ -46,7 +46,7 @@ public class GrobidCaller{
                 return;
             }
 
-            if (resHeader.getFullAuthors().isEmpty()) {
+            if (resHeader.getFullAuthors().isEmpty() || resHeader.getFullAuthors().equals(null)) {
                 System.out.println("Authors not found for Document: " + pdfFile.getPath());
                 return;
             }

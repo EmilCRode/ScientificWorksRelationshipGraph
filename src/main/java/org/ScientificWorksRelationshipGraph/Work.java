@@ -50,12 +50,15 @@ public class Work extends Entity{
         this.title = bibItem.getTitle();
         //Adding Authors to the work
         this.authors = new ArrayList<>();
+        //needs null check
         for(Person person: bibItem.getFullAuthors()){
             addAuthor(new Author(person));
         }
         //Adding affiliated Organizations to the work
+        //needs null check
         this.affiliatedOrganisations = new ArrayList<>();
-        for (Affiliation currentAffiliation: bibItem.getFullAffiliations()) {
+        List<Affiliation> affiliationsToProcess = bibItem.getFullAffiliations();
+        for (Affiliation currentAffiliation: affiliationsToProcess) {
             addAffiliatedOrganization(new Organization(currentAffiliation));
         }
 
