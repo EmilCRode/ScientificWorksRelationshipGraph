@@ -86,7 +86,7 @@ public class Main {
             for (File fileToProcess : filesToProcess) {
                 //String result = caller.runGrobidToBibTex(fileToProcess, process, consolidate);
                 String result = null;
-                caller.runGrobidToObjects(fileToProcess, process, consolidate, neo4jHandler);
+                caller.grobidToObjects(fileToProcess, process, consolidate, neo4jHandler);
                 if (!bibFile.exists() || bibFile.isFile())
                     FileUtils.writeStringToFile(bibFile, result, "UTF-8");
                 else {

@@ -1,9 +1,13 @@
 package org.ScientificWorksRelationshipGraph;
 
+import org.grobid.core.data.Affiliation;
 import org.grobid.core.data.Person;
 import org.neo4j.ogm.annotation.NodeEntity;
 import org.neo4j.ogm.annotation.Property;
 import org.neo4j.ogm.annotation.Relationship;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @NodeEntity
 public class Author extends Entity{
@@ -20,7 +24,7 @@ public class Author extends Entity{
     @Relationship(type="CREATED", direction=Relationship.OUTGOING)
     private Work[] createdWorks;
     @Relationship(type="AFFILIATED", direction=Relationship.UNDIRECTED)
-    private Organization[] affiliatedOrganizations;
+    private List<Organization> affiliatedOrganizations;
     public Author(){
     }
 
@@ -30,7 +34,10 @@ public class Author extends Entity{
         this.middleName = person.getMiddleName();
         this.lastName = person.getLastName();
         this.email = person.getEmail();
-        person.getAffiliations().get(0).
+        this.affiliatedOrganizations = new ArrayList<>();
+        for (Affiliation affiliation: person.getAffiliations()) {
+            this.affiliatedOrganizations.add(new Organization(affiliation));
+        }
     }
 
     public String getFirstName() {
@@ -61,11 +68,11 @@ public class Author extends Entity{
         this.createdWorks = createdWorks;
     }
 
-    public Organization[] getAffiliatedOrganizations() {
+    public List<Organization> getAffiliatedOrganizations() {
         return affiliatedOrganizations;
     }
 
-    public void setAffiliatedOrganizations(Organization[] affiliatedOrganizations) {
+    public void setAffiliatedOrganizations(List<Organization> affiliatedOrganizations) {
         this.affiliatedOrganizations = affiliatedOrganizations;
     }
 }

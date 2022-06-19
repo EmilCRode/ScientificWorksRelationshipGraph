@@ -1,5 +1,6 @@
 package org.ScientificWorksRelationshipGraph;
 
+import org.grobid.core.data.Affiliation;
 import org.grobid.core.data.BibDataSet;
 import org.grobid.core.data.BiblioItem;
 import org.grobid.core.data.Person;
@@ -10,10 +11,10 @@ import org.grobid.core.utilities.GrobidProperties;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
-import java.util.function.Consumer;
 
 public class GrobidCaller{
     private static Engine engine = null;
@@ -34,37 +35,34 @@ public class GrobidCaller{
         }
     }
 
-    public void runGrobidToObjects (File pdfFile, String process, int consolidate, Neo4jHandler neo4jHandler) {
+    public void grobidToObjects (File pdfFile, String process, int consolidate, Neo4jHandler neo4jHandler) {
         try {
-            if (process.equals("header")) {
                 // Biblio object for the result
                 BiblioItem resHeader = new BiblioItem();
                 engine.processHeader(pdfFile.getPath(), consolidate, resHeader);
+            String title = resHeader.getTitle();
+            if (title == null || title.isBlank()) {
+                System.out.println("Title not found for Document: " + pdfFile.getPath());
+                return;
+            }
 
-                Work work = new Work();
-                String title = resHeader.getTitle();
-                List<Person> authors = resHeader.getFullAuthors();
-                resHeader.getNormalizedPublicationDate();
+            if (resHeader.getFullAuthors().isEmpty()) {
+                System.out.println("Authors not found for Document: " + pdfFile.getPath());
+                return;
+            }
+                Work work = new Work(resHeader);
 
-                if(title == null){
-                    System.out.println("Title not found for Document: " + pdfFile.getName());
-                    return;
+                List<BibDataSet> citations = engine.processReferences(pdfFile, consolidate);
+                Work currentWork;
+                for (BibDataSet bib : citations) {
+                    currentWork = new Work(bib.getResBib());
+                    currentWork.setConfidence(bib.getConfidence());
+                    work.addCitation(currentWork);
                 }
-                if(authors.isEmpty()){
-                    System.out.println("Authors not found for Document: " + pdfFile.getName());
-                    return;
-                }
-
-                Author currentAuthor;
-                for (int i = 0; i < authors.size(); i++) {
-                    currentAuthor = new Author(authors.get(i));
-                }
-                
-                work.setTitle(title);
-                work.setAuthors(authors);
-                //needs other attributes
                 neo4jHandler.createOrUpdate(work);
-            } else if (process.equals("citation")) {
+
+            /*HoW it should work
+                } else if (process.equals("citation")) {
                 List<BibDataSet> citations = engine.processReferences(pdfFile, consolidate);
                 for (BibDataSet bib : citations) {
                     if (bib.getResBib() != null){}
@@ -74,6 +72,8 @@ public class GrobidCaller{
                 System.err.println("Unknown selected process: " + process);
                 System.err.println("Usage: command process[header,citation] path_to_pdf");
             }
+
+             */
         } catch (Exception e) {
             // If an exception is generated, print a stack trace
             e.printStackTrace();
