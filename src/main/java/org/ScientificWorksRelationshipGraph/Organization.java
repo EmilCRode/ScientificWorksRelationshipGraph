@@ -119,4 +119,10 @@ public class Organization extends Entity{
     public void setWorks(Work[] works) {
         this.works = works;
     }
+    public double compare(Organization other){
+        double result = Distances.weightedDamerauLevenshteinSimilarity(this.acronym, other.getAcronym());
+        result += Distances.weightedDamerauLevenshteinSimilarity(this.name, other.getName());
+        result += Distances.weightedDamerauLevenshteinSimilarity(this.location, other.getLocation());
+        return result / 3;
+    }
 }

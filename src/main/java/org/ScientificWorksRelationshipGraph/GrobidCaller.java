@@ -35,8 +35,9 @@ public class GrobidCaller{
         }
     }
 
-    public void grobidToObjects (File pdfFile, String process, int consolidate, Neo4jHandler neo4jHandler) {
+    public void grobidToObjects (File pdfFile, int consolidate, Neo4jHandler handler) {
         try {
+            long startTimegrobidToObjects = System.currentTimeMillis();
                 // Biblio object for the result
                 BiblioItem resHeader = new BiblioItem();
                 engine.processHeader(pdfFile.getPath(), consolidate, resHeader);
@@ -45,21 +46,22 @@ public class GrobidCaller{
                 System.out.println("Title not found for Document: " + pdfFile.getPath());
                 return;
             }
-
-            if (resHeader.getFullAuthors().isEmpty() || resHeader.getFullAuthors().equals(null)) {
+            if (resHeader.getFullAuthors().isEmpty() || resHeader.getFullAuthors() == null) {
                 System.out.println("Authors not found for Document: " + pdfFile.getPath());
                 return;
             }
-                Work work = new Work(resHeader);
-
+                Work work = new Work(resHeader, handler);
+                //Adding all the citations to the Work representing the PDF
                 List<BibDataSet> citations = engine.processReferences(pdfFile, consolidate);
                 Work currentWork;
                 for (BibDataSet bib : citations) {
-                    currentWork = new Work(bib.getResBib());
-                    currentWork.setConfidence(bib.getConfidence());
-                    work.addCitation(currentWork);
+                    currentWork = Work.createUniqueWork(bib.getResBib(),handler);
+                    if(currentWork.getTitle() != null) {
+                        work.addCitation(currentWork);
+                    }
                 }
-                neo4jHandler.createOrUpdate(work);
+                handler.createOrUpdate(work);
+                System.out.println("Created: '" + title + "' in " + (System.currentTimeMillis() - startTimegrobidToObjects) + " milliseconds");
         } catch (Exception e) {
             // If an exception is generated, print a stack trace
             e.printStackTrace();
