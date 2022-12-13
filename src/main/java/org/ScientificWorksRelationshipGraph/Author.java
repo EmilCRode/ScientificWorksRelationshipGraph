@@ -12,12 +12,13 @@ import java.util.List;
 public class Author extends Entity{
     @Property("title")
     private String title;
+    @Property("lastname")
+    private String lastName;
     @Property("firstname")
     private String firstName;
     @Property("middlename")
     private String middleName;
-    @Property("lastname")
-    private String lastName;
+
     @Property("email")
     private String email;
     @Relationship(type="AUTHORED")
@@ -45,7 +46,11 @@ public class Author extends Entity{
     public static Author CreateUniqueAuthor(Person person, Neo4jHandler handler)throws IllegalAccessException{
         Author author = new Author(person);
         Author alias = (Author) handler.findSimilar(author);
-        return (alias == null) ? author : alias;
+        if(alias == null){
+            handler.getAuthorsInDatabase().add(author);
+            return author;
+        }
+        return alias;
     }
 
     public String getFirstName() {

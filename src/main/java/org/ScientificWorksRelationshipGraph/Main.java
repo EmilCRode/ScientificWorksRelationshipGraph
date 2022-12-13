@@ -14,6 +14,8 @@ public class Main {
      *
      */
     public static void main(String[] args) throws IllegalAccessException {
+
+       // if (true) {return;};
         Neo4jHandler neo4JHandler = new Neo4jHandler();
         if ((args.length != 3) && (args.length != 4)) {
             System.err.println("usage: command process[header|citation] path-to-pdf-file path-to-bib-file");

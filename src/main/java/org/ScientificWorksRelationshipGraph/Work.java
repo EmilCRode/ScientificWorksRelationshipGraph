@@ -76,15 +76,15 @@ public class Work extends Entity{
         */
     }
 
+
     public static Work createUniqueWork(BiblioItem bibItem, Neo4jHandler handler)throws IllegalAccessException{
         Work work = new Work(bibItem, handler);
         Work alias = (Work) handler.findSimilar(work);
-        return (alias == null) ? work : alias;
-    }
-    public static Work createUniqueWork(BiblioItem bibItem, Neo4jHandler handler)throws IllegalAccessException{
-        Work work = new Work(bibItem, handler);
-        Work alias = (Work) handler.findSimilar(work, inDatabase);
-        return (alias == null) ? work : alias;
+        if(alias == null){
+            handler.getAuthorsInDatabase().add(work);
+            return work;
+        }
+        return alias;
     }
 
     public String getTitle() { return title; }

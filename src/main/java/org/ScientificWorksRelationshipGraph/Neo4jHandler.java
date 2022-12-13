@@ -15,6 +15,9 @@ public class Neo4jHandler {
     private Session session;
     private List<Entity> worksInDatabase;
     private List<Entity> authorsInDatabase;
+
+
+
     public Neo4jHandler(){
         Configuration configuration = new Configuration.Builder()
                 .uri("bolt://neo4j:citations@localhost")
@@ -28,7 +31,7 @@ public class Neo4jHandler {
         worksInDatabase.addAll(session.loadAll(Work.class).stream().toList());
     }
     private static final int DEPTH_LIST = 0;
-    private static final int DEPTH_ENTITY = 1;
+    private static final int DEPTH_ENTITY = 2;
     Object find(Class type, Long id) {
         return session.load(type, id, DEPTH_ENTITY);
     }
@@ -156,4 +159,11 @@ public class Neo4jHandler {
         } catch (NullPointerException exception) {System.out.println(exception.getMessage());}
         return -1;
     }*/
+    public List<Entity> getWorksInDatabase() {
+        return worksInDatabase;
+    }
+
+    public List<Entity> getAuthorsInDatabase() {
+        return authorsInDatabase;
+    }
 }
