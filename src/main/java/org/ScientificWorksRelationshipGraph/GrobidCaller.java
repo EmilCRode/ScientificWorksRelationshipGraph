@@ -50,7 +50,7 @@ public class GrobidCaller{
                 System.out.println("Authors not found for Document: " + pdfFile.getPath());
                 return;
             }
-                Work work = new Work(resHeader, handler);
+                Work work = Work.createUniqueWork(resHeader, handler);
                 //Adding all the citations to the Work representing the PDF
                 List<BibDataSet> citations = engine.processReferences(pdfFile, consolidate);
                 Work currentWork;
