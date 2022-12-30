@@ -37,7 +37,7 @@ public class GrobidCaller{
 
     public void grobidToObjects (File pdfFile, int consolidate, Neo4jHandler handler) {
         try {
-            long startTimegrobidToObjects = System.currentTimeMillis();
+            //long startTimegrobidToObjects = System.currentTimeMillis();
                 // Biblio object for the result
                 BiblioItem resHeader = new BiblioItem();
                 engine.processHeader(pdfFile.getPath(), consolidate, resHeader);
@@ -61,7 +61,7 @@ public class GrobidCaller{
                     }
                 }
                 handler.createOrUpdate(work);
-                System.out.println("Created: '" + title + "' in " + (System.currentTimeMillis() - startTimegrobidToObjects) + " milliseconds");
+                //System.out.println("Created: '" + title + "' in " + (System.currentTimeMillis() - startTimegrobidToObjects) + " milliseconds");
         } catch (Exception e) {
             // If an exception is generated, print a stack trace
             e.printStackTrace();

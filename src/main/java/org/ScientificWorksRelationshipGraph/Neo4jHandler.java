@@ -8,6 +8,7 @@ import org.neo4j.ogm.session.SessionFactory;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class Neo4jHandler {
 
@@ -69,12 +70,8 @@ public class Neo4jHandler {
         double currentBestScore = 0;
         double currentScore;
 
-        long startTimeFetchFromDB = System.currentTimeMillis();
         Iterable<Entity> inDatabase = findAll(entity.getClass());
-        long timePassedFetchFromDB = System.currentTimeMillis() - startTimeFetchFromDB;
-        System.out.println("Time to fetch Entities from Neo4J: " + timePassedFetchFromDB);
 
-        long startTimeCompare = System.currentTimeMillis();
         for (Entity entityToCompare : inDatabase) {
                 currentScore = entitySimilarity(entity, entityToCompare);
                 if (currentScore > currentBestScore) {
@@ -82,7 +79,6 @@ public class Neo4jHandler {
                     closestMatch = entityToCompare;
                 }
         }
-        System.out.println("Time to compare all entities to this one: " + (System.currentTimeMillis() - startTimeCompare));
         return (currentBestScore > threshhold) ? closestMatch : null;
     }
     public Entity findSimilar(Entity entity, Iterable<Entity> inDatabase) throws IllegalAccessException {
@@ -106,8 +102,8 @@ public class Neo4jHandler {
      * @param entity2 An Entity to compare to the first; Entity of type Work is expected
      */
     public double entitySimilarity(Entity entity1, Entity entity2){
-        if(!entity1.getClass().equals(entity2.getClass())){
-            System.out.println("[ERROR]: Classmissmatch in" + this.getClass().getName() + "enitySimilarity");
+        if(!Objects.equals(entity1.getClass(), entity2.getClass())){
+            System.out.println("[ERROR]: Classmissmatch between" + entity1.getClass() + " and " +  entity2.getClass() +"in" + this.getClass().getName() + ".enitySimilarity()");
             return -1;
         }
         Field[] fields = entity1.getClass().getDeclaredFields();

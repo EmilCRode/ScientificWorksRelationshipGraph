@@ -1,5 +1,6 @@
 package org.ScientificWorksRelationshipGraph;
 
+import me.tongfei.progressbar.ProgressBar;
 import org.apache.commons.io.FileUtils;
 
 import java.io.File;
@@ -86,10 +87,16 @@ public class Main {
     private static void toNeo4J(List<File> filesToProcess, String process, int consolidate, File bibFile, Neo4jHandler neo4jHandler){
         GrobidCaller caller = new GrobidCaller();
         try {
-            for (int i = 0; i < filesToProcess.size(); i++) {
-                String result = null;
+            int numberOfFiles = filesToProcess.size();
+            ProgressBar pb = new ProgressBar("Working on files", numberOfFiles).start();
+            long startTime;
+            for (int i = 0; i < numberOfFiles; i++) {
+                pb.step();
+                pb.setExtraMessage(("Working on: " + filesToProcess.get(i).getPath()));
+                //startTime = System.currentTimeMillis();
+                //System.out.print("Processing file: " + i + "/" + numberOfFiles + " [" + filesToProcess.get(i).getPath() + "]");
                 caller.grobidToObjects(filesToProcess.get(i), consolidate, neo4jHandler);
-                System.out.println("Processing file nr.: " + i + " [" + filesToProcess.get(i).getPath() + "]");
+                //System.out.print("   ... Done in " + (System.currentTimeMillis() - startTime) + "\n");
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -97,7 +104,8 @@ public class Main {
     }
 
     private static void fieldTest() throws IllegalAccessException{
-        Neo4jHandler neo4JHandler = new Neo4jHandler();Entity entity = new Work();
+        Neo4jHandler neo4JHandler = new Neo4jHandler();
+        Entity entity = new Work();
         Field[] entityAttributes = entity.getClass().getDeclaredFields();
         for (Field currentField: entityAttributes) {
             currentField.setAccessible(true);

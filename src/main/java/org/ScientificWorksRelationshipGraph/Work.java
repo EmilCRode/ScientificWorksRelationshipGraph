@@ -81,7 +81,7 @@ public class Work extends Entity{
         Work work = new Work(bibItem, handler);
         Work alias = (Work) handler.findSimilar(work);
         if(alias == null){
-            handler.getAuthorsInDatabase().add(work);
+            handler.getWorksInDatabase().add(work);
             return work;
         }
         return alias;
