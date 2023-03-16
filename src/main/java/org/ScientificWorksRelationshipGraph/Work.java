@@ -7,6 +7,7 @@ import org.neo4j.ogm.annotation.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Logger;
 
 @NodeEntity
 public class Work extends Entity{
@@ -30,8 +31,17 @@ public class Work extends Entity{
     @Property
     private int publicationDay;
 
-    /*@Property
-    private String fullGrobidDataString;*/
+    @Property
+    private String discipline;
+
+    @Property
+    private String journal;
+
+    @Property
+    private ArrayList<String> sourcefiles;
+
+    @Property
+    private String fullGrobidDataString;
 
     @Relationship(type="AUTHORED", direction = Relationship.INCOMING)
     private List<Author> authors;
@@ -47,9 +57,18 @@ public class Work extends Entity{
         this.authors = new ArrayList<>();
         //this.affiliatedOrganisations = new ArrayList<>();
         this.citations = new ArrayList<>();
+        this.sourcefiles = new ArrayList<>();
+    }
+    public Work(String sourcefile){
+        this.title = null;
+        this.authors = new ArrayList<>();
+        //this.affiliatedOrganisations = new ArrayList<>();
+        this.citations = new ArrayList<>();
+        this.sourcefiles = new ArrayList<>();
+        this.sourcefiles.add(sourcefile);
     }
 
-    public Work(BiblioItem bibItem, Neo4jHandler handler)throws IllegalAccessException{
+    public Work(BiblioItem bibItem, Neo4jHandler handler, String sourcefile)throws IllegalAccessException{
         this.title = bibItem.getTitle();
         //Adding Authors to the work
         this.authors = new ArrayList<>();
@@ -71,14 +90,15 @@ public class Work extends Entity{
             for (Affiliation currentAffiliation: affiliationsToProcess) {
                 addAffiliatedOrganization(new Organization(currentAffiliation));
             }
-        }
+        }*/
+        this.sourcefiles = new ArrayList<>();
+        this.sourcefiles.add(sourcefile);
         this.fullGrobidDataString = bibItem.toString().replaceAll("\\w*='*null'*,*","");
-        */
     }
 
 
-    public static Work createUniqueWork(BiblioItem bibItem, Neo4jHandler handler)throws IllegalAccessException{
-        Work work = new Work(bibItem, handler);
+    public static Work createUniqueWork(BiblioItem bibItem, Neo4jHandler handler, String sourcefile)throws IllegalAccessException{
+        Work work = new Work(bibItem, handler, sourcefile);
         Work alias = (Work) handler.findSimilar(work);
         if(alias == null){
             handler.getWorksInDatabase().add(work);
@@ -120,7 +140,27 @@ public class Work extends Entity{
         }
     }
 
-    /*public String getFullGrobidDataString() { return fullGrobidDataString; }
+    public String getDiscipline() { return discipline; }
+
+    public void setDiscipline(String discipline) { this.discipline = discipline; }
+
+    public String getJournal() {
+        return journal;
+    }
+
+    public void setJournal(String journal) {
+        this.journal = journal;
+    }
+
+    public String getFullGrobidDataString() { return fullGrobidDataString; }
+
+    public ArrayList<String> getSourcefiles() {
+        return sourcefiles;
+    }
+
+    public void setSourcefiles(ArrayList<String> sourcefiles) {
+        this.sourcefiles = sourcefiles;
+    }
 
     public void setFullGrobidDataString(String fullGrobidDataString) { this.fullGrobidDataString = fullGrobidDataString; }
 
@@ -132,12 +172,15 @@ public class Work extends Entity{
      */
 
     public double compareTo(Work other){
-        if(this.equals(other)){return 1;}
+        if(this.equals(other)){
+            System.out.println("Work: " +this.title+ " matched itself");
+            return 1;}
         double similarity = 6*Distances.weightedDamerauLevenshteinSimilarity(this.title, other.getTitle());
         similarity += 3*Distances.compareAuthors(this.authors, other.getAuthors());
         if(this.publicationDate != null && other.getPublicationDate() != null){
             similarity += (this.publicationDate.compareTo(other.getPublicationDate()) == 0) ? 1 : 0;
         } else { similarity += (this.publicationDate == null || other.getPublicationDate() == null) ? 0 : 1;}
+        System.out.println("Work: Similarity between: " +this.title +" and "+ other.title + " = "+ (similarity/10));
         return similarity / 10;
     }
 

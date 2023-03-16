@@ -16,36 +16,25 @@ public class Main {
      */
     public static void main(String[] args) throws IllegalAccessException {
 
-       // if (true) {return;};
         Neo4jHandler neo4JHandler = new Neo4jHandler();
-        if ((args.length != 3) && (args.length != 4)) {
-            System.err.println("usage: command process[header|citation] path-to-pdf-file path-to-bib-file");
+        if ((args.length != 1) && (args.length != 2)) {
+            System.err.println("usage: command process[header|citation] path-to-pdf-file");
             return;
         }
-
-        String process = args[0];
-
-        if (!process.equals("citation") && !process.equals("header")) {
-            System.err.println("unknown process: " + process);
-            System.err.println("usage: command process[header|citation] path-to-pdf-file(s) path-to-bib-file(s)");
-            return;
-        }
-
-        String pdfPath = args[1];
-        String bibPath = args[2];
+        String pdfPath = args[0];
+        String[] dirs = pdfPath.split("/");
+        String discipline = dirs[dirs.length - 2];
+        String journal = dirs[dirs.length - 1];
         String consolidation = null;
         int consolidate = 0;
-        if (args.length == 4)
-            consolidation = args[3];
 
-        System.out.print(process + " " + pdfPath + " " + bibPath);
+        System.out.print(pdfPath);
         if ((consolidation != null) && (consolidation.equals("1") || consolidation.equals("true")))
             consolidate = 1;
         if ((consolidation != null) && (consolidation.equals("2") ))
             consolidate = 2;
 
         File pdfFile = new File(pdfPath);
-        File bibFile = new File(bibPath);
 
         if (!pdfFile.exists()) {
             System.err.println("Path does not exist: " + pdfPath);
@@ -56,15 +45,6 @@ public class Main {
         if (pdfFile.isFile()) {
             filesToProcess.add(pdfFile);
         } else if (pdfFile.isDirectory()) {
-            if (!bibFile.exists()) {
-                System.err.println("Path does not exist: " + bibPath);
-                System.exit(0);
-            }
-
-            if (!bibFile.isDirectory()) {
-                System.err.println("BibTex path is not a directory: " + bibPath);
-                System.exit(0);
-            }
 
             File[] refFiles = pdfFile.listFiles(new FilenameFilter() {
                 public boolean accept(File dir, String name) {
@@ -81,23 +61,23 @@ public class Main {
                 filesToProcess.add(refFiles[i]);
             }
         }
-        toNeo4J(filesToProcess, process, consolidate, bibFile, neo4JHandler);
+        toNeo4J(filesToProcess, consolidate, neo4JHandler, discipline, journal);
         neo4JHandler.closeSession();
+
     }
-    private static void toNeo4J(List<File> filesToProcess, String process, int consolidate, File bibFile, Neo4jHandler neo4jHandler){
+    private static void toNeo4J(List<File> filesToProcess, int consolidate, Neo4jHandler neo4jHandler, String discipline, String journal){
         GrobidCaller caller = new GrobidCaller();
         try {
             int numberOfFiles = filesToProcess.size();
-            ProgressBar pb = new ProgressBar("Working on files", numberOfFiles).start();
+            ProgressBar pb = new ProgressBar("", numberOfFiles).start();
             long startTime;
             for (int i = 0; i < numberOfFiles; i++) {
                 pb.step();
-                pb.setExtraMessage(("Working on: " + filesToProcess.get(i).getPath()));
-                //startTime = System.currentTimeMillis();
-                //System.out.print("Processing file: " + i + "/" + numberOfFiles + " [" + filesToProcess.get(i).getPath() + "]");
-                caller.grobidToObjects(filesToProcess.get(i), consolidate, neo4jHandler);
-                //System.out.print("   ... Done in " + (System.currentTimeMillis() - startTime) + "\n");
+                pb.setExtraMessage(("" + filesToProcess.get(i).getName()));
+                caller.grobidToObjects(filesToProcess.get(i), consolidate, neo4jHandler, discipline, journal);
             }
+            pb.stop();
+            System.exit(0);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -105,7 +85,7 @@ public class Main {
 
     private static void fieldTest() throws IllegalAccessException{
         Neo4jHandler neo4JHandler = new Neo4jHandler();
-        Entity entity = new Work();
+        Entity entity = new Work("");
         Field[] entityAttributes = entity.getClass().getDeclaredFields();
         for (Field currentField: entityAttributes) {
             currentField.setAccessible(true);

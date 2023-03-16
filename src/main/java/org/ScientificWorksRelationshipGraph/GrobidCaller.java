@@ -35,33 +35,39 @@ public class GrobidCaller{
         }
     }
 
-    public void grobidToObjects (File pdfFile, int consolidate, Neo4jHandler handler) {
+    public void grobidToObjects (File pdfFile, int consolidate, Neo4jHandler handler, String discipline, String journal) {
         try {
-            //long startTimegrobidToObjects = System.currentTimeMillis();
                 // Biblio object for the result
-                BiblioItem resHeader = new BiblioItem();
-                engine.processHeader(pdfFile.getPath(), consolidate, resHeader);
+            BiblioItem resHeader = new BiblioItem();
+            engine.processHeader(pdfFile.getPath(), consolidate, resHeader);
+            if(pdfFile.getName() != null){ resHeader.setTitle(pdfFile.getName().replace(".pdf","").trim()); }
             String title = resHeader.getTitle();
             if (title == null || title.isBlank()) {
-                System.out.println("Title not found for Document: " + pdfFile.getPath());
+                System.out.println("Title not found for Document: " + pdfFile.getName());
                 return;
             }
-            if (resHeader.getFullAuthors().isEmpty() || resHeader.getFullAuthors() == null) {
-                System.out.println("Authors not found for Document: " + pdfFile.getPath());
+            if (resHeader.getFullAuthors() == null) {
+                System.out.println("Authors not found for Document: " + pdfFile.getName());
                 return;
             }
-                Work work = Work.createUniqueWork(resHeader, handler);
-                //Adding all the citations to the Work representing the PDF
-                List<BibDataSet> citations = engine.processReferences(pdfFile, consolidate);
-                Work currentWork;
-                for (BibDataSet bib : citations) {
-                    currentWork = Work.createUniqueWork(bib.getResBib(),handler);
-                    if(currentWork.getTitle() != null) {
-                        work.addCitation(currentWork);
-                    }
+            if (resHeader.getFullAuthors().isEmpty()) {
+                System.out.println("Authors not found for Document: " + pdfFile.getName());
+                return;
+            }
+            Work work = Work.createUniqueWork(resHeader, handler, pdfFile.getName());
+            work.setDiscipline(discipline);
+            work.setJournal(journal);
+            //Adding all the citations to the Work representing the PDF
+            List<BibDataSet> citations = engine.processReferences(pdfFile, consolidate);
+            Work currentWork;
+            for (BibDataSet bib : citations) {
+                currentWork = Work.createUniqueWork(bib.getResBib(),handler, pdfFile.getName());
+                if(currentWork.getTitle() != null) {
+                    work.addCitation(currentWork);
                 }
-                handler.createOrUpdate(work);
-                //System.out.println("Created: '" + title + "' in " + (System.currentTimeMillis() - startTimegrobidToObjects) + " milliseconds");
+            }
+            handler.createOrUpdate(work);
+            //System.out.println("Created: '" + title + "' in " + (System.currentTimeMillis() - startTimegrobidToObjects) + " milliseconds");
         } catch (Exception e) {
             // If an exception is generated, print a stack trace
             e.printStackTrace();

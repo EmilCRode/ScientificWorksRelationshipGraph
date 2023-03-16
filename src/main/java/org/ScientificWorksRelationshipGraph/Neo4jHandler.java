@@ -28,8 +28,10 @@ public class Neo4jHandler {
         session = sessionFactory.openSession();
         authorsInDatabase = new ArrayList<>();
         authorsInDatabase.addAll(session.loadAll(Author.class).stream().toList());
+        System.out.println("Loaded Authors from Database");
         worksInDatabase = new ArrayList<>();
         worksInDatabase.addAll(session.loadAll(Work.class).stream().toList());
+        System.out.println("Loaded Works from Database");
     }
     private static final int DEPTH_LIST = 0;
     private static final int DEPTH_ENTITY = 2;

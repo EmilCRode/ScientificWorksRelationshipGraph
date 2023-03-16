@@ -110,11 +110,14 @@ public class Author extends Entity{
     }
 
     public double compareTo(Author other){
-        if(this.equals(other)){return 1;}
+        if(this.equals(other)){
+            System.out.println("Author: " +this.toString()+ " matched itself");
+            return 1;}
         double similarity = Distances.weightedDamerauLevenshteinSimilarity(this.firstName, other.getFirstName());
         similarity += Distances.weightedDamerauLevenshteinSimilarity(this.middleName, other.getMiddleName());
         similarity += Distances.weightedDamerauLevenshteinSimilarity(this.lastName, other.getLastName());
         similarity += Distances.weightedDamerauLevenshteinSimilarity(this.title, other.getTitle());
+        System.out.println("Author: Similarity between: " +this.toString() +" and "+ other.toString() + " = "+ (similarity/4));
         return similarity / 4;
     }
 }
