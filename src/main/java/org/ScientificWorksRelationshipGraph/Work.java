@@ -4,20 +4,20 @@ import org.grobid.core.data.BiblioItem;
 import org.grobid.core.data.Date;
 import org.grobid.core.data.Person;
 import org.neo4j.ogm.annotation.*;
+import org.neo4j.ogm.annotation.typeconversion.DateString;
+import org.neo4j.ogm.id.UuidStrategy;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import java.util.logging.Logger;
+import org.apache.commons.lang3.StringUtils;
+import org.wipo.analyzers.wipokr.utils.StringUtil;
 
 @NodeEntity
 public class Work extends Entity{
     @Property
     private String title;
-    @Transient
-    private Date publicationDate;
-    /**
-     * This Attribute is set by setting the publicationDate
-     */
     @Property
     private int publicationYear;
     /**
@@ -70,6 +70,10 @@ public class Work extends Entity{
 
     public Work(BiblioItem bibItem, Neo4jHandler handler, String sourcefile)throws IllegalAccessException{
         this.title = bibItem.getTitle();
+        if(this.title == null || this.title.isBlank()){
+            String bookTitle = bibItem.getBookTitle();
+            if(!StringUtils.isEmpty(bookTitle) || !StringUtils.isEmpty(bibItem.getArticleTitle())) this.title = (StringUtils.isEmpty(bookTitle))? bibItem.getArticleTitle(): bookTitle;
+        }
         //Adding Authors to the work
         this.authors = new ArrayList<>();
         List<Person> authorsToProcess = bibItem.getFullAuthors();
@@ -81,7 +85,6 @@ public class Work extends Entity{
                 addAuthor(currentAuthor);
             }
         }
-        this.publicationDate = bibItem.getNormalizedPublicationDate();
         this.citations = new ArrayList<Work>();
         /*Adding affiliated Organizations to the work
         this.affiliatedOrganisations = new ArrayList<>();
@@ -94,16 +97,24 @@ public class Work extends Entity{
         this.sourcefiles = new ArrayList<>();
         this.sourcefiles.add(sourcefile);
         this.fullGrobidDataString = bibItem.toString().replaceAll("\\w*='*null'*,*","");
+        Date grobidDate = bibItem.getNormalizedPublicationDate();
+        if(grobidDate != null) {
+            this.publicationYear = grobidDate.getYear();
+            this.publicationMonth = grobidDate.getMonth();
+            this.publicationDay = grobidDate.getDay();
+        }
     }
 
 
     public static Work createUniqueWork(BiblioItem bibItem, Neo4jHandler handler, String sourcefile)throws IllegalAccessException{
         Work work = new Work(bibItem, handler, sourcefile);
+        if(StringUtils.isEmpty(work.title)) return null;
         Work alias = (Work) handler.findSimilar(work);
         if(alias == null){
             handler.getWorksInDatabase().add(work);
             return work;
         }
+        //System.out.println("found alias: "+ alias.toString() + "\nfor: " + work.toString());
         return alias;
     }
 
@@ -129,16 +140,16 @@ public class Work extends Entity{
 
     public void addCitation(Work citedWork){ this.citations.add(citedWork); }
 
-    public Date getPublicationDate() { return publicationDate; }
+    /*public java.util.Date getPublicationDate() { return publicationDate; }
 
     public void setPublicationDate(Date publicationDate) {
         this.publicationDate = publicationDate;
-        if(this.publicationDate.isNotNull()) {
+        if(this.publicationDate != null) {
             this.publicationYear = publicationDate.getYear();
             this.publicationMonth = publicationDate.getMonth();
             this.publicationDay = publicationDate.getDay();
         }
-    }
+    }*/
 
     public String getDiscipline() { return discipline; }
 
@@ -175,12 +186,20 @@ public class Work extends Entity{
         if(this.equals(other)){
             System.out.println("Work: " +this.title+ " matched itself");
             return 1;}
+        if(this == null || other == null){
+            System.out.println("null compared");
+            return 0.0;
+        }
         double similarity = 6*Distances.weightedDamerauLevenshteinSimilarity(this.title, other.getTitle());
         similarity += 3*Distances.compareAuthors(this.authors, other.getAuthors());
-        if(this.publicationDate != null && other.getPublicationDate() != null){
+        /*if(this.publicationDate != null && other.getPublicationDate() != null){
             similarity += (this.publicationDate.compareTo(other.getPublicationDate()) == 0) ? 1 : 0;
-        } else { similarity += (this.publicationDate == null || other.getPublicationDate() == null) ? 0 : 1;}
-        System.out.println("Work: Similarity between: " +this.title +" and "+ other.title + " = "+ (similarity/10));
+        } else { similarity += (this.publicationDate == null || other.getPublicationDate() == null) ? 0 : 1;}*/
+        //if(Double.isNaN(similarity)) System.out.println("this: " + this.toString() + "\nother: " + other.toString() + "\n\nSimilarity: " + similarity / 10);
+        if(other.title!= null && this.title != null) {
+            if (this.title.contains("Traduit par Syl") && other.title.contains("Traduit par Syl")){
+                System.out.println("this: " + this.toString() + "\nother: " + other.toString() + "\n\nSimilarity: " + similarity / 10);}
+        }
         return similarity / 10;
     }
 
@@ -188,7 +207,6 @@ public class Work extends Entity{
     public String toString() {
         return "Work{" +
                 "title='" + title + '\'' +
-                ", publicationDate=" + publicationDate +
                 ", publicationYear=" + publicationYear +
                 ", publicationMonth=" + publicationMonth +
                 ", publicationDay=" + publicationDay +

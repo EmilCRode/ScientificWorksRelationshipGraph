@@ -47,9 +47,12 @@ public class Distances {
         if (source == null || target == null) {
             return (source == null && target == null)? 1 : 0;
         }
+        if (source.isEmpty() || target.isEmpty()){
+            return (source.isEmpty() && target.isEmpty()) ? 1 : 0;
+        }
         double avglength = (source.length() + target.length()) / 2;
         double distance = damerauLevenshteinDistance(source, target);
-        return 1- (distance / (avglength - 2));
+        return 1- (distance / (avglength));
     }
     public static double cosineSimilarity(final CharSequence sequence1, final CharSequence sequence2){
         CosineDistance cosineDistance = new CosineDistance();
@@ -57,11 +60,11 @@ public class Distances {
         return 1- distance;
     }
     public static double compareAuthors(List<Author> authors1, List<Author> authors2){
-        int counter = 0;
+        int counter = 1;
         double matchingAuthors = 0;
         for (Author authorX: authors1) {
+            counter ++;
             for(Author authorY: authors2){
-                counter ++;
                 if(authorX.compareTo(authorY) > 0.75){
                     matchingAuthors += 1;
                 }

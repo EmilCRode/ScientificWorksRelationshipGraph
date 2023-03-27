@@ -1,15 +1,16 @@
 package org.ScientificWorksRelationshipGraph;
 
 import org.grobid.core.data.Person;
-import org.neo4j.ogm.annotation.NodeEntity;
-import org.neo4j.ogm.annotation.Property;
-import org.neo4j.ogm.annotation.Relationship;
+import org.neo4j.ogm.annotation.*;
+import org.neo4j.ogm.id.UuidStrategy;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @NodeEntity
 public class Author extends Entity{
+
     @Property("title")
     private String title;
     @Property("lastname")
@@ -23,6 +24,7 @@ public class Author extends Entity{
     private String email;
     @Relationship(type="AUTHORED")
     private List<Work> createdWorks;
+
     /*@Relationship(type="AFFILIATED", direction=Relationship.UNDIRECTED)
     private List<Organization> affiliatedOrganizations;*/
     public Author(){
@@ -30,9 +32,9 @@ public class Author extends Entity{
 
     public Author(Person person){
         this.title = person.getTitle();
-        this.firstName = person.getFirstName();
-        this.middleName = person.getMiddleName();
-        this.lastName = person.getLastName();
+        if(person.getFirstName()!= null) this.firstName = person.getFirstName().replaceAll("\\b(et|Et)\\b","");
+        if(person.getMiddleName() != null) this.middleName = person.getMiddleName().replaceAll("\\b(et|Et)\\b","");
+        if(person.getLastName() != null) this.lastName = person.getLastName().replaceAll("\\b(et|Et)\\b","");
         this.email = person.getEmail();
         this.createdWorks = new ArrayList<>();
         /*this.affiliatedOrganizations = new ArrayList<>();
@@ -111,13 +113,12 @@ public class Author extends Entity{
 
     public double compareTo(Author other){
         if(this.equals(other)){
-            System.out.println("Author: " +this.toString()+ " matched itself");
+            //System.out.println("Author: " +this.toString()+ " matched itself");
             return 1;}
         double similarity = Distances.weightedDamerauLevenshteinSimilarity(this.firstName, other.getFirstName());
         similarity += Distances.weightedDamerauLevenshteinSimilarity(this.middleName, other.getMiddleName());
         similarity += Distances.weightedDamerauLevenshteinSimilarity(this.lastName, other.getLastName());
         similarity += Distances.weightedDamerauLevenshteinSimilarity(this.title, other.getTitle());
-        System.out.println("Author: Similarity between: " +this.toString() +" and "+ other.toString() + " = "+ (similarity/4));
         return similarity / 4;
     }
 }

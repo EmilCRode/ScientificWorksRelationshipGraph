@@ -1,5 +1,6 @@
 package org.ScientificWorksRelationshipGraph;
 
+import org.apache.commons.lang3.StringUtils;
 import org.grobid.core.data.Affiliation;
 import org.grobid.core.data.BibDataSet;
 import org.grobid.core.data.BiblioItem;
@@ -11,10 +12,9 @@ import org.grobid.core.utilities.GrobidProperties;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Properties;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 public class GrobidCaller{
     private static Engine engine = null;
@@ -62,7 +62,7 @@ public class GrobidCaller{
             Work currentWork;
             for (BibDataSet bib : citations) {
                 currentWork = Work.createUniqueWork(bib.getResBib(),handler, pdfFile.getName());
-                if(currentWork.getTitle() != null) {
+                if( currentWork != null) {
                     work.addCitation(currentWork);
                 }
             }

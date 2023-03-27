@@ -27,14 +27,17 @@ public class Neo4jHandler {
         sessionFactory = new SessionFactory(configuration, "org.ScientificWorksRelationshipGraph");
         session = sessionFactory.openSession();
         authorsInDatabase = new ArrayList<>();
-        authorsInDatabase.addAll(session.loadAll(Author.class).stream().toList());
-        System.out.println("Loaded Authors from Database");
+        authorsInDatabase.addAll(session.loadAll(Author.class,2).stream().toList());
+        System.out.println("Loaded Authors from Database:" + authorsInDatabase);
+        for (Entity author: authorsInDatabase) {
+            System.out.println(author.getId());
+        };
         worksInDatabase = new ArrayList<>();
         worksInDatabase.addAll(session.loadAll(Work.class).stream().toList());
         System.out.println("Loaded Works from Database");
     }
     private static final int DEPTH_LIST = 0;
-    private static final int DEPTH_ENTITY = 2;
+    private static final int DEPTH_ENTITY = -1;
     Object find(Class type, Long id) {
         return session.load(type, id, DEPTH_ENTITY);
     }
@@ -52,7 +55,7 @@ public class Neo4jHandler {
     }
 
     Entity createOrUpdate(Entity entity) {
-        session.save(entity, DEPTH_ENTITY);
+        session.save(entity, -1);
         return session.load(entity.getClass(), entity.getId());
     }
     public void closeSession(){ this.sessionFactory.close();}

@@ -77,6 +77,7 @@ public class Main {
                 caller.grobidToObjects(filesToProcess.get(i), consolidate, neo4jHandler, discipline, journal);
             }
             pb.stop();
+            neo4jHandler.closeSession();
             System.exit(0);
         } catch (Exception e) {
             e.printStackTrace();
