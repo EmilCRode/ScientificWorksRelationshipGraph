@@ -52,6 +52,9 @@ public class Work extends Entity{
     @Relationship("CITES")
     private List<Work> citations;
 
+    @Relationship(type="lshHashedto")
+    private List<LocalitySensitiveHash> lshHashesTo ;
+
     public Work(){
         this.title = null;
         this.authors = new ArrayList<>();

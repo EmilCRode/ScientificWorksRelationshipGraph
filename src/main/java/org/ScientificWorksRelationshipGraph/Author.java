@@ -24,6 +24,8 @@ public class Author extends Entity{
     private String email;
     @Relationship(type="AUTHORED")
     private List<Work> createdWorks;
+    @Relationship(type="lshHashedto")
+    private List<LocalitySensitiveHash> lshHashesTo ;
 
     /*@Relationship(type="AFFILIATED", direction=Relationship.UNDIRECTED)
     private List<Organization> affiliatedOrganizations;*/
