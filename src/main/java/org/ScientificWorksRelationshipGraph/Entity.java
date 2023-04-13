@@ -38,4 +38,8 @@ abstract class Entity {
     public int hashCode() {
         return (id == null) ? -1 : id.hashCode();
     }
+
+    public String compareString(){
+        return null;
+    };
 }

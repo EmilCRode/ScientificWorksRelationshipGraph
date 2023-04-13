@@ -10,7 +10,6 @@ import java.util.List;
 
 public class Hashing {
     /**
-     *
      * @param input The integer to be digested by the hashfunctions
      * @param hashId the identifier of the hashfunction
      * @param numberOfHashfunctions: The number of hashfunctions to simulate.#
@@ -39,7 +38,7 @@ public class Hashing {
         return  (hash1 + (hashId * hash2) ) % hashtableSize;
     }
     public static BitSet toBitVector(Shingling shingling, int hashtableSize){
-        BitSet bitvector = new BitSet(hashtableSize); //might be buggy because Short can be negative
+        BitSet bitvector = new BitSet(hashtableSize);
         for (int hash: shingling.getHashesforShingles(hashtableSize)) {
             bitvector.set(hash, true);
         }
@@ -47,7 +46,6 @@ public class Hashing {
     }
 
     /**
-     *
      * @param vector this method takes a bitVector in form of a BitSet as input
      * @param numberOfHashFunctions the number of Hashfunctions to simulate
      * @param hastableSize the hastablesize or number of buckets
@@ -74,7 +72,6 @@ public class Hashing {
     }
 
     /**
-     *
      * @param signature the signature to hash in the format of an Integer Array
      * @param numberOfBands the number of buckets to create. ceiling(signature.length / numberOfBands)
      *                    is used to calculated bandsize

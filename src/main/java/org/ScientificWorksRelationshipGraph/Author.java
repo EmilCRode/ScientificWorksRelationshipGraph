@@ -29,8 +29,7 @@ public class Author extends Entity{
 
     /*@Relationship(type="AFFILIATED", direction=Relationship.UNDIRECTED)
     private List<Organization> affiliatedOrganizations;*/
-    public Author(){
-    }
+    public Author(){}
 
     public Author(Person person){
         this.title = person.getTitle();
@@ -94,6 +93,7 @@ public class Author extends Entity{
     public void setTitle(String title) {
         this.title = title;
     }
+
     /*public List<Organization> getAffiliatedOrganizations() {
         return affiliatedOrganizations;
     }
@@ -105,7 +105,7 @@ public class Author extends Entity{
     @Override
     public String toString(){
         return "Author{" +
-                "Title='" + title + '\'' +
+                "Title: '" + title + '\'' +
                 ", FirstName: " + this.firstName +
                 ", MiddleName: " + this.middleName +
                 ", LastName: " + this.lastName +
@@ -122,5 +122,15 @@ public class Author extends Entity{
         similarity += Distances.weightedDamerauLevenshteinSimilarity(this.lastName, other.getLastName());
         similarity += Distances.weightedDamerauLevenshteinSimilarity(this.title, other.getTitle());
         return similarity / 4;
+    }
+    @Override
+    public String compareString(){
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append(this.title);
+        stringBuilder.append(this.firstName);
+        stringBuilder.append(this.middleName);
+        stringBuilder.append(this.lastName);
+        stringBuilder.append(this.email);
+        return stringBuilder.toString();
     }
 }

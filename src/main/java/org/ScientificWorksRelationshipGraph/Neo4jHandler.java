@@ -120,6 +120,10 @@ public class Neo4jHandler {
         }
         return 0;
     }
+    public List<Entity> getSimilarCandidates(Entity){
+        int[] lshHashes = Entity.
+        List<Entity> =
+    }
     /*
     /**
      * This method is used to compare the similarity of attributes of the same Class taken from Work and Author

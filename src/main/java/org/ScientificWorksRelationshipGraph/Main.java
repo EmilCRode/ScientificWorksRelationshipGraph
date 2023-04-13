@@ -83,25 +83,4 @@ public class Main {
             e.printStackTrace();
         }
     }
-
-    private static void fieldTest() throws IllegalAccessException{
-        Neo4jHandler neo4JHandler = new Neo4jHandler();
-        Entity entity = new Work("");
-        Field[] entityAttributes = entity.getClass().getDeclaredFields();
-        for (Field currentField: entityAttributes) {
-            currentField.setAccessible(true);
-        }
-        for(Entity currentEntity: neo4JHandler.findAll(entity.getClass())){
-            System.out.println("### Entity: ###");
-            for(int i = 0; i < entityAttributes.length; i++) {
-                Field field = entityAttributes[i];
-                System.out.println(field.getName() + ": "+ field.get(currentEntity));
-            }
-            System.out.println("### End of Entity ###");
-        }
-        for (Field currentField: entityAttributes) {
-            currentField.setAccessible(false);
-        }
-        neo4JHandler.closeSession();
-    }
 }

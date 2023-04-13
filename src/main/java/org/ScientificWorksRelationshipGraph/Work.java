@@ -61,14 +61,7 @@ public class Work extends Entity{
         //this.affiliatedOrganisations = new ArrayList<>();
         this.citations = new ArrayList<>();
         this.sourcefiles = new ArrayList<>();
-    }
-    public Work(String sourcefile){
-        this.title = null;
-        this.authors = new ArrayList<>();
-        //this.affiliatedOrganisations = new ArrayList<>();
-        this.citations = new ArrayList<>();
-        this.sourcefiles = new ArrayList<>();
-        this.sourcefiles.add(sourcefile);
+        this.lshHashesTo = new ArrayList<>();
     }
 
     public Work(BiblioItem bibItem, Neo4jHandler handler, String sourcefile)throws IllegalAccessException{
@@ -106,6 +99,7 @@ public class Work extends Entity{
             this.publicationMonth = grobidDate.getMonth();
             this.publicationDay = grobidDate.getDay();
         }
+        //TODO add Hashes
     }
 
 
@@ -218,5 +212,9 @@ public class Work extends Entity{
                 //", affiliatedOrganisations=" + affiliatedOrganisations +
                 ", citations=" + citations +
                 '}';
+    }
+    @Override
+    public String compareString(){
+        return this.title;
     }
 }
