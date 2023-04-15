@@ -1,14 +1,12 @@
 package org.ScientificWorksRelationshipGraph;
 
-import org.grobid.core.data.Date;
+import org.LocalitySensitiveHashing.Hashing;
 import org.neo4j.ogm.config.Configuration;
 import org.neo4j.ogm.session.Session;
 import org.neo4j.ogm.session.SessionFactory;
 
 import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 public class Neo4jHandler {
 
@@ -111,7 +109,6 @@ public class Neo4jHandler {
             System.out.println("[ERROR]: Classmissmatch between" + entity1.getClass() + " and " +  entity2.getClass() +"in" + this.getClass().getName() + ".enitySimilarity()");
             return -1;
         }
-        Field[] fields = entity1.getClass().getDeclaredFields();
         switch(entity1.getClass().getSimpleName()){
             case "Work":
                 return ( (Work) entity1).compareTo( (Work) entity2);
@@ -120,9 +117,16 @@ public class Neo4jHandler {
         }
         return 0;
     }
-    public List<Entity> getSimilarCandidates(Entity){
-        int[] lshHashes = Entity.
-        List<Entity> =
+    public List<Entity> getSimilarCandidates(Entity entity){
+        List<Entity> candidates = new ArrayList<>();
+        int[] lshHashes = Hashing.generateLSHHash(entity.compareString(), 2, Integer.MAX_VALUE, (short) 240, 80);
+        session.beginTransaction();
+        for (int hashValue: lshHashes) {
+            Map<String, Integer> parameters = new HashMap<>();
+            parameters.put("hashValue", hashValue);
+            candidates.addAll(session.queryForObject(LocalitySensitiveHash.class,"MATCH(hash: LocalitySensitiveHash {hashValue: $hashValue) RETURN hash", parameters).getHashedToThis());
+        }
+        return candidates;
     }
     /*
     /**

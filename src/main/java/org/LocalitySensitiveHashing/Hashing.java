@@ -9,33 +9,11 @@ import java.util.BitSet;
 import java.util.List;
 
 public class Hashing {
-    /**
-     * @param input The integer to be digested by the hashfunctions
-     * @param hashId the identifier of the hashfunction
-     * @param numberOfHashfunctions: The number of hashfunctions to simulate.#
-     * @param hashtableSize the size of the hashtable / number ofbuckets to hash to
-     * @return the digest a specific hashfunction on the inputs.
-     * hash1 is a simple input to the power of 4 modulo the hashtableSize
-     * hash2 is gained by taking the input to the power of 6 and cutting digits from the front and
-     * trimming digits from the front and back of the number to result in a number of digits equal
-     * to the number of digits in the hashtableSize
-     */
-    private static int hashFunction(int input, int hashId, short numberOfHashfunctions, int hashtableSize){
-        // hash1
-        int hash1 = (int) Math.pow(1.0 + input, 3) % hashtableSize;
-        // hash2
-        int targetNumberOfDigits = String.valueOf(hashtableSize).length();
-        int hash2 = (int) Math.pow(input + 1, 8);
-        int currentDigitCount = String.valueOf(hash2).length();
-        if(currentDigitCount > targetNumberOfDigits){
-            int lengthOfTailToCut =  (int) Math.floor((double) (currentDigitCount - targetNumberOfDigits) / 2);
-            int moduloPower = targetNumberOfDigits+lengthOfTailToCut;
-            hash2 = hash2 % (int) Math.pow(10,moduloPower);
-            hash2 = (int) (hash2 / Math.pow(10,lengthOfTailToCut));
-        }
-        // simulating multiple hashfunctions
-
-        return  (hash1 + (hashId * hash2) ) % hashtableSize;
+    public static int[] generateLSHHash(String inputString, int shinglesize, int hashtablesize, short numberHashfunction, int numberOfbands){
+        Shingling shingling = new Shingling(inputString, shinglesize);
+        BitSet bitVector = toBitVector(shingling, hashtablesize);
+        int[] signature = signature(bitVector, numberHashfunction, hashtablesize);
+        return hashedBandsFromSignature(signature, numberOfbands);
     }
     public static BitSet toBitVector(Shingling shingling, int hashtableSize){
         BitSet bitvector = new BitSet(hashtableSize);

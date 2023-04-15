@@ -14,6 +14,8 @@ import java.util.logging.Logger;
 import org.apache.commons.lang3.StringUtils;
 import org.wipo.analyzers.wipokr.utils.StringUtil;
 
+import static org.LocalitySensitiveHashing.Hashing.generateLSHHash;
+
 @NodeEntity
 public class Work extends Entity{
     @Property
@@ -64,7 +66,7 @@ public class Work extends Entity{
         this.lshHashesTo = new ArrayList<>();
     }
 
-    public Work(BiblioItem bibItem, Neo4jHandler handler, String sourcefile)throws IllegalAccessException{
+    public Work(BiblioItem bibItem, Neo4jHandler neo4jHandler, String sourcefile)throws IllegalAccessException{
         this.title = bibItem.getTitle();
         if(this.title == null || this.title.isBlank()){
             String bookTitle = bibItem.getBookTitle();
@@ -76,7 +78,7 @@ public class Work extends Entity{
         Author currentAuthor;
         if(authorsToProcess!= null){
             for (Person person : authorsToProcess) {
-                currentAuthor = Author.CreateUniqueAuthor(person, handler);
+                currentAuthor = Author.CreateUniqueAuthor(person, neo4jHandler);
                 currentAuthor.addCreatedWork(this);
                 addAuthor(currentAuthor);
             }
@@ -99,7 +101,16 @@ public class Work extends Entity{
             this.publicationMonth = grobidDate.getMonth();
             this.publicationDay = grobidDate.getDay();
         }
-        //TODO add Hashes
+        this.lshHashesTo = new ArrayList<>();
+        int[] hashes = generateLSHHash(compareString(),2, Integer.MAX_VALUE, (short) 240,80);
+        for(int hashValue: hashes){
+            LocalitySensitiveHash foundHashObject = (LocalitySensitiveHash) neo4jHandler.find(LocalitySensitiveHash.class, (long) hashValue);
+            if(foundHashObject == null){
+                foundHashObject = new LocalitySensitiveHash(hashValue, Integer.MAX_VALUE,240,80);
+            }
+            foundHashObject.getHashedToThis().add(this);
+            this.lshHashesTo.add(foundHashObject);
+        }
     }
 
 

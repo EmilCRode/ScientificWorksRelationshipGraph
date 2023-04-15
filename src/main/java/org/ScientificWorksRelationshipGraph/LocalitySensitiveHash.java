@@ -1,5 +1,6 @@
 package org.ScientificWorksRelationshipGraph;
 
+import org.neo4j.ogm.annotation.Id;
 import org.neo4j.ogm.annotation.NodeEntity;
 import org.neo4j.ogm.annotation.Property;
 import org.neo4j.ogm.annotation.Relationship;
@@ -17,8 +18,8 @@ public class LocalitySensitiveHash extends Entity{
     /**
      * the hashvalue of the band
      */
-    @Property("hashvalue")
-    private int hashValue;
+    @Id
+    private long hashValue;
     /**
      * the number of Bands hashed from each signature.
      */
@@ -41,11 +42,11 @@ public class LocalitySensitiveHash extends Entity{
     /**
      * A constructor creating the Locality-sensitive Hash without connections to any nodes but with its attributes set.
      * @param hashValue
-     * @param numberOfBands
      * @param hashtableSize
      * @param numberOfHashfunctions
+     * @param numberOfBands
      */
-    public LocalitySensitiveHash(int hashValue, int numberOfBands, int hashtableSize, int numberOfHashfunctions){
+    public LocalitySensitiveHash(int hashValue, int hashtableSize, int numberOfHashfunctions, int numberOfBands){
         this.hashValue = hashValue;
         this.numberOfBands  = numberOfBands;
         this.hashtableSize = hashtableSize;

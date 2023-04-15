@@ -8,6 +8,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import static org.LocalitySensitiveHashing.Hashing.generateLSHHash;
+
 @NodeEntity
 public class Author extends Entity{
 
@@ -31,13 +33,23 @@ public class Author extends Entity{
     private List<Organization> affiliatedOrganizations;*/
     public Author(){}
 
-    public Author(Person person){
+    public Author(Person person, Neo4jHandler neo4jHandler){
         this.title = person.getTitle();
         if(person.getFirstName()!= null) this.firstName = person.getFirstName().replaceAll("\\b(et|Et)\\b","");
         if(person.getMiddleName() != null) this.middleName = person.getMiddleName().replaceAll("\\b(et|Et)\\b","");
         if(person.getLastName() != null) this.lastName = person.getLastName().replaceAll("\\b(et|Et)\\b","");
         this.email = person.getEmail();
         this.createdWorks = new ArrayList<>();
+        this.lshHashesTo = new ArrayList<>();
+        int[] hashes = generateLSHHash(compareString(),2, Integer.MAX_VALUE, (short) 240,80);
+        for(int hashValue: hashes){
+            LocalitySensitiveHash foundHashObject = (LocalitySensitiveHash) neo4jHandler.find(LocalitySensitiveHash.class, (long) hashValue);
+            if(foundHashObject == null){
+                foundHashObject = new LocalitySensitiveHash(hashValue, Integer.MAX_VALUE,240,80);
+            }
+            foundHashObject.getHashedToThis().add(this);
+            this.lshHashesTo.add(foundHashObject);
+        }
         /*this.affiliatedOrganizations = new ArrayList<>();
         List<Affiliation> affiliationsToProcess= person.getAffiliations();
         if(affiliationsToProcess != null) {
@@ -47,7 +59,7 @@ public class Author extends Entity{
         }*/
     }
     public static Author CreateUniqueAuthor(Person person, Neo4jHandler handler)throws IllegalAccessException{
-        Author author = new Author(person);
+        Author author = new Author(person, handler);
         Author alias = (Author) handler.findSimilar(author);
         if(alias == null){
             handler.getAuthorsInDatabase().add(author);
