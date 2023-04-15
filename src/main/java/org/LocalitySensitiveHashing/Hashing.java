@@ -12,11 +12,14 @@ public class Hashing {
     public static int[] generateLSHHash(String inputString, int shinglesize, int hashtablesize, short numberHashfunction, int numberOfbands){
         Shingling shingling = new Shingling(inputString, shinglesize);
         BitSet bitVector = toBitVector(shingling, hashtablesize);
+        int sizeVector = bitVector.size();
         int[] signature = signature(bitVector, numberHashfunction, hashtablesize);
         return hashedBandsFromSignature(signature, numberOfbands);
     }
     public static BitSet toBitVector(Shingling shingling, int hashtableSize){
-        BitSet bitvector = new BitSet(hashtableSize);
+        BitSet bitvector = new BitSet(hashtableSize-10);
+        int sizeVector = bitvector.size();
+        System.out.println(sizeVector);
         for (int hash: shingling.getHashesforShingles(hashtableSize)) {
             bitvector.set(hash, true);
         }
