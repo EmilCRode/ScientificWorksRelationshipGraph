@@ -11,15 +11,13 @@ import java.util.List;
 public class Hashing {
     public static int[] generateLSHHash(String inputString, int shinglesize, int hashtablesize, short numberHashfunction, int numberOfbands){
         Shingling shingling = new Shingling(inputString, shinglesize);
-        BitSet bitVector = toBitVector(shingling, hashtablesize);
+        BitVector bitVector = toBitVector(shingling, hashtablesize);
         int sizeVector = bitVector.size();
         int[] signature = signature(bitVector, numberHashfunction, hashtablesize);
         return hashedBandsFromSignature(signature, numberOfbands);
     }
-    public static BitSet toBitVector(Shingling shingling, int hashtableSize){
-        BitSet bitvector = new BitSet(hashtableSize-10);
-        int sizeVector = bitvector.size();
-        System.out.println(sizeVector);
+    public static BitVector toBitVector(Shingling shingling, int hashtableSize){
+        BitVector bitvector = new BitVector(hashtableSize);
         for (int hash: shingling.getHashesforShingles(hashtableSize)) {
             bitvector.set(hash, true);
         }
@@ -29,10 +27,10 @@ public class Hashing {
     /**
      * @param vector this method takes a bitVector in form of a BitSet as input
      * @param numberOfHashFunctions the number of Hashfunctions to simulate
-     * @param hastableSize the hastablesize or number of buckets
+     * @param hashtableSize the hastablesize or number of buckets
      * @return an integer-array which represents the signature. a signature is an array of Integers in which the values represent the index which is hashed gives the first set bit in the signature while incrementing through a number of hashfunction equal to the size of the signature.
      */
-    public static int[] signature(BitSet vector, short numberOfHashFunctions, int hastableSize){
+    public static int[] signature(BitVector vector, short numberOfHashFunctions, int hashtableSize){
         /*
             create the signature vector/Array and fill it with Integer.MAXVALUE.
             In the algorithm infinity was used but this is practically the same.
@@ -40,11 +38,10 @@ public class Hashing {
         int[] signature = new int[numberOfHashFunctions];
         Arrays.fill(signature, -1);
         for(int hashfunctionIndex = 0; hashfunctionIndex < numberOfHashFunctions; hashfunctionIndex++){
-            List<Integer> currentHashFunction = generateHashFunctions(vector.size(), hastableSize, hashfunctionIndex);
             for(int index = 0; index < vector.size(); index++){
-                int hash = currentHashFunction.get(index);
-                if(vector.get(hash)){
-                    signature[hashfunctionIndex]  = index;
+                int currentHash = hashFunction(hashfunctionIndex, hashtableSize, index);
+                if(vector.get(currentHash)){
+                    signature[hashfunctionIndex] = index;
                     break;
                 }
             }
@@ -79,22 +76,15 @@ public class Hashing {
 
     /**
      * This function generates a number of hashvalues from the given key Object those hashvalues fall into numBuckets buckets.
-     * @param numHashes the number of different hashfunctions to use.
+     * @param hashFunctionIndex the number of different hashfunctions to use.
      * @param numBuckets thoe number of bucket aka the size of the hashtable.
      * @param key the key to be digested by the hashfunctions
      * @return a List of hashvalues one for each hashfunction
      */
-    public static List<Integer> generateHashFunctions(int numHashes, int numBuckets, Object key) {
-        List<Integer> bucketIndices = new ArrayList<>(numHashes);
-
-        for (int i = 0; i < numHashes; i++) {
-            int seed = i + 1; // use a different seed for each hash function
-            byte[] bytes = key.toString().getBytes(StandardCharsets.UTF_8);
-            int hash = MurmurHash3.hash32x86(bytes, 0, bytes.length, seed);
-            int bucketIndex = (hash % numBuckets) & 0xffffff;
-            bucketIndices.add(bucketIndex);
-        }
-
-        return bucketIndices;
+    public static int hashFunction(int hashFunctionIndex, int numBuckets, Object key) {
+        int seed = hashFunctionIndex; // use a different seed for each hash function
+        byte[] bytes = key.toString().getBytes(StandardCharsets.UTF_8);
+        int hash = MurmurHash3.hash32x86(bytes, 0, bytes.length, seed);
+        return Math.abs(hash % numBuckets)%numBuckets; // return only positive values in the bucketrange
     }
 }

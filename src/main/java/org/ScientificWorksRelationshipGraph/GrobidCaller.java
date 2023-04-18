@@ -27,8 +27,6 @@ public class GrobidCaller{
             GrobidHomeFinder grobidHomeFinder = new GrobidHomeFinder(Arrays.asList(pGrobidHome));
             GrobidProperties.getInstance(grobidHomeFinder);
 
-            System.out.println(">>>>>>>> GROBID_HOME=" + GrobidProperties.get_GROBID_HOME_PATH());
-
             engine = GrobidFactory.getInstance().createEngine();
         } catch (Exception e) {
             e.printStackTrace();
@@ -55,6 +53,7 @@ public class GrobidCaller{
                 return;
             }
             Work work = Work.createUniqueWork(resHeader, handler, pdfFile.getName());
+            if(work == null){return;}//Remove when MERGE is implemented
             work.setDiscipline(discipline);
             work.setJournal(journal);
             //Adding all the citations to the Work representing the PDF
@@ -67,7 +66,6 @@ public class GrobidCaller{
                 }
             }
             handler.createOrUpdate(work);
-            //System.out.println("Created: '" + title + "' in " + (System.currentTimeMillis() - startTimegrobidToObjects) + " milliseconds");
         } catch (Exception e) {
             // If an exception is generated, print a stack trace
             e.printStackTrace();

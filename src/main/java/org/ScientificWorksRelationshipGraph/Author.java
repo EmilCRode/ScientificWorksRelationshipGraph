@@ -26,8 +26,10 @@ public class Author extends Entity{
     private String email;
     @Relationship(type="AUTHORED")
     private List<Work> createdWorks;
+    /*
     @Relationship(type="lshHashedto")
     private List<LocalitySensitiveHash> lshHashesTo ;
+    */
 
     /*@Relationship(type="AFFILIATED", direction=Relationship.UNDIRECTED)
     private List<Organization> affiliatedOrganizations;*/
@@ -40,16 +42,17 @@ public class Author extends Entity{
         if(person.getLastName() != null) this.lastName = person.getLastName().replaceAll("\\b(et|Et)\\b","");
         this.email = person.getEmail();
         this.createdWorks = new ArrayList<>();
+        /*
         this.lshHashesTo = new ArrayList<>();
-        int[] hashes = generateLSHHash(compareString(),2, Integer.MAX_VALUE, (short) 240,80);
+        int[] hashes = generateLSHHash(compareString(),2, Short.MAX_VALUE, (short) 240,80);
         for(int hashValue: hashes){
             LocalitySensitiveHash foundHashObject = (LocalitySensitiveHash) neo4jHandler.find(LocalitySensitiveHash.class, (long) hashValue);
             if(foundHashObject == null){
-                foundHashObject = new LocalitySensitiveHash(hashValue, Integer.MAX_VALUE,240,80);
+                foundHashObject = new LocalitySensitiveHash(hashValue, Short.MAX_VALUE,240,80);
             }
             foundHashObject.getHashedToThis().add(this);
             this.lshHashesTo.add(foundHashObject);
-        }
+        }*/
         /*this.affiliatedOrganizations = new ArrayList<>();
         List<Affiliation> affiliationsToProcess= person.getAffiliations();
         if(affiliationsToProcess != null) {
@@ -126,9 +129,7 @@ public class Author extends Entity{
     }
 
     public double compareTo(Author other){
-        if(this.equals(other)){
-            //System.out.println("Author: " +this.toString()+ " matched itself");
-            return 1;}
+        if(this.equals(other)){ return 1; }
         double similarity = Distances.weightedDamerauLevenshteinSimilarity(this.firstName, other.getFirstName());
         similarity += Distances.weightedDamerauLevenshteinSimilarity(this.middleName, other.getMiddleName());
         similarity += Distances.weightedDamerauLevenshteinSimilarity(this.lastName, other.getLastName());

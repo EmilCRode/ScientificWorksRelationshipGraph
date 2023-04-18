@@ -60,7 +60,7 @@ public class Distances {
         return 1- distance;
     }
     public static double compareAuthors(List<Author> authors1, List<Author> authors2){
-        int counter = 1;
+        int counter = 0;
         double matchingAuthors = 0;
         for (Author authorX: authors1) {
             counter ++;

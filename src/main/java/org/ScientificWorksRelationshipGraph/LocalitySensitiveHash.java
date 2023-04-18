@@ -14,12 +14,12 @@ import java.util.List;
  * it also holds the parameters used in hashing the bands and the underlying signatures.
  */
 @NodeEntity
-public class LocalitySensitiveHash extends Entity{
+public class LocalitySensitiveHash{
     /**
      * the hashvalue of the band
      */
     @Id
-    private long hashValue;
+    private Long hashValue;
     /**
      * the number of Bands hashed from each signature.
      */
@@ -47,7 +47,7 @@ public class LocalitySensitiveHash extends Entity{
      * @param numberOfBands
      */
     public LocalitySensitiveHash(int hashValue, int hashtableSize, int numberOfHashfunctions, int numberOfBands){
-        this.hashValue = hashValue;
+        this.hashValue = (long) hashValue;
         this.numberOfBands  = numberOfBands;
         this.hashtableSize = hashtableSize;
         this.numberOfHashfunctions = numberOfHashfunctions;

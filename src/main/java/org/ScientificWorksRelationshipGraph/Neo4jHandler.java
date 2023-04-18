@@ -67,8 +67,7 @@ public class Neo4jHandler {
      */
 
     public Entity findSimilar(Entity entity) throws IllegalAccessException {
-        final double threshhold = 0.7;
-        Field[] entityAttributes = entity.getClass().getDeclaredFields();
+        final double threshhold = 0.9;
         Entity closestMatch = null;
         double currentBestScore = 0;
         double currentScore;
@@ -81,21 +80,6 @@ public class Neo4jHandler {
                     currentBestScore = currentScore;
                     closestMatch = entityToCompare;
                 }
-        }
-        return (currentBestScore > threshhold) ? closestMatch : null;
-    }
-    public Entity findSimilar(Entity entity, Iterable<Entity> inDatabase) throws IllegalAccessException {
-        final double threshhold = 0.7;
-        Field[] entityAttributes = entity.getClass().getDeclaredFields();
-        Entity closestMatch = null;
-        double currentBestScore = 0;
-        double currentScore;
-        for (Entity entityToCompare : inDatabase) {
-            currentScore = entitySimilarity(entity, entityToCompare);
-            if (currentScore > currentBestScore) {
-                currentBestScore = currentScore;
-                closestMatch = entityToCompare;
-            }
         }
         return (currentBestScore > threshhold) ? closestMatch : null;
     }

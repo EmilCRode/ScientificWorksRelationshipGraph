@@ -7,9 +7,7 @@ import org.neo4j.ogm.annotation.*;
 import org.neo4j.ogm.annotation.typeconversion.DateString;
 import org.neo4j.ogm.id.UuidStrategy;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.logging.Logger;
 import org.apache.commons.lang3.StringUtils;
 import org.wipo.analyzers.wipokr.utils.StringUtil;
@@ -52,7 +50,7 @@ public class Work extends Entity{
 
      */
     @Relationship("CITES")
-    private List<Work> citations;
+    private Set<Work> citations;
 
     @Relationship(type="lshHashedto")
     private List<LocalitySensitiveHash> lshHashesTo ;
@@ -61,7 +59,7 @@ public class Work extends Entity{
         this.title = null;
         this.authors = new ArrayList<>();
         //this.affiliatedOrganisations = new ArrayList<>();
-        this.citations = new ArrayList<>();
+        this.citations = new HashSet<>();
         this.sourcefiles = new ArrayList<>();
         this.lshHashesTo = new ArrayList<>();
     }
@@ -83,15 +81,7 @@ public class Work extends Entity{
                 addAuthor(currentAuthor);
             }
         }
-        this.citations = new ArrayList<Work>();
-        /*Adding affiliated Organizations to the work
-        this.affiliatedOrganisations = new ArrayList<>();
-        List<Affiliation> affiliationsToProcess = bibItem.getFullAffiliations();
-        if(affiliationsToProcess != null){
-            for (Affiliation currentAffiliation: affiliationsToProcess) {
-                addAffiliatedOrganization(new Organization(currentAffiliation));
-            }
-        }*/
+        this.citations = new HashSet<>();
         this.sourcefiles = new ArrayList<>();
         this.sourcefiles.add(sourcefile);
         this.fullGrobidDataString = bibItem.toString().replaceAll("\\w*='*null'*,*","");
@@ -102,28 +92,38 @@ public class Work extends Entity{
             this.publicationDay = grobidDate.getDay();
         }
         this.lshHashesTo = new ArrayList<>();
-        int[] hashes = generateLSHHash(compareString(),2, Integer.MAX_VALUE, (short) 240,80);
+
+        /*
+        int[] hashes = generateLSHHash(compareString(),2, Short.MAX_VALUE, (short) 240,80);
         for(int hashValue: hashes){
             LocalitySensitiveHash foundHashObject = (LocalitySensitiveHash) neo4jHandler.find(LocalitySensitiveHash.class, (long) hashValue);
             if(foundHashObject == null){
-                foundHashObject = new LocalitySensitiveHash(hashValue, Integer.MAX_VALUE,240,80);
+                foundHashObject = new LocalitySensitiveHash(hashValue, Short.MAX_VALUE,240,80);
             }
             foundHashObject.getHashedToThis().add(this);
             this.lshHashesTo.add(foundHashObject);
-        }
+        }*/
+        /*Adding affiliated Organizations to the work
+        this.affiliatedOrganisations = new ArrayList<>();
+        List<Affiliation> affiliationsToProcess = bibItem.getFullAffiliations();
+        if(affiliationsToProcess != null){
+            for (Affiliation currentAffiliation: affiliationsToProcess) {
+                addAffiliatedOrganization(new Organization(currentAffiliation));
+            }
+        }*/
     }
 
 
     public static Work createUniqueWork(BiblioItem bibItem, Neo4jHandler handler, String sourcefile)throws IllegalAccessException{
+        if(StringUtils.isBlank(bibItem.getTitle())){ return null; }
         Work work = new Work(bibItem, handler, sourcefile);
-        if(StringUtils.isEmpty(work.title)) return null;
         Work alias = (Work) handler.findSimilar(work);
         if(alias == null){
             handler.getWorksInDatabase().add(work);
             return work;
         }
         //System.out.println("found alias: "+ alias.toString() + "\nfor: " + work.toString());
-        return alias;
+        return null; //returns null if there is an alias aka a duplicate NEEDS_TEST
     }
 
     public String getTitle() { return title; }
@@ -142,14 +142,13 @@ public class Work extends Entity{
 
     public void addAuthor(Author author){ this.authors.add(author); }
 
-    public List<Work> getCitations() { return citations; }
+    public Set<Work> getCitations() { return citations; }
 
-    public void setCitations(List<Work> citations) { this.citations = citations; }
+    public void setCitations(Set<Work> citations) { this.citations = citations; }
 
     public void addCitation(Work citedWork){ this.citations.add(citedWork); }
 
     /*public java.util.Date getPublicationDate() { return publicationDate; }
-
     public void setPublicationDate(Date publicationDate) {
         this.publicationDate = publicationDate;
         if(this.publicationDate != null) {
@@ -204,11 +203,7 @@ public class Work extends Entity{
             similarity += (this.publicationDate.compareTo(other.getPublicationDate()) == 0) ? 1 : 0;
         } else { similarity += (this.publicationDate == null || other.getPublicationDate() == null) ? 0 : 1;}*/
         //if(Double.isNaN(similarity)) System.out.println("this: " + this.toString() + "\nother: " + other.toString() + "\n\nSimilarity: " + similarity / 10);
-        if(other.title!= null && this.title != null) {
-            if (this.title.contains("Traduit par Syl") && other.title.contains("Traduit par Syl")){
-                System.out.println("this: " + this.toString() + "\nother: " + other.toString() + "\n\nSimilarity: " + similarity / 10);}
-        }
-        return similarity / 10;
+        return similarity / 9;
     }
 
     @Override
