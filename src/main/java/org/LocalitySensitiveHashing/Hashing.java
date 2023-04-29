@@ -9,7 +9,8 @@ import java.util.BitSet;
 import java.util.List;
 
 public class Hashing {
-    public static int[] generateLSHHash(String inputString, int shinglesize, int hashtablesize, short numberHashfunction, int numberOfbands){
+    public Hashing(){}
+    public  int[] generateLSHHash(String inputString, int shinglesize, int hashtablesize, short numberHashfunction, int numberOfbands){
         Shingling shingling = new Shingling(inputString, shinglesize);
         BitVector bitVector = toBitVector(shingling, hashtablesize);
         int sizeVector = bitVector.size();

@@ -7,6 +7,7 @@ import java.io.File;
 import java.io.FilenameFilter;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class Main {
@@ -57,9 +58,7 @@ public class Main {
                 System.exit(0);
             }
 
-            for (int i = 0; i < refFiles.length; i++) {
-                filesToProcess.add(refFiles[i]);
-            }
+            Collections.addAll(filesToProcess, refFiles);
         }
         toNeo4J(filesToProcess, consolidate, neo4JHandler, discipline, journal);
         neo4JHandler.closeSession();
@@ -73,7 +72,7 @@ public class Main {
             long startTime;
             for (int i = 0; i < numberOfFiles; i++) {
                 pb.step();
-                pb.setExtraMessage(("" + filesToProcess.get(i).getName()));
+                pb.setExtraMessage((filesToProcess.get(i).getName()));
                 caller.grobidToObjects(filesToProcess.get(i), consolidate, neo4jHandler, discipline, journal);
             }
             pb.stop();

@@ -14,49 +14,50 @@ import java.util.List;
  * it also holds the parameters used in hashing the bands and the underlying signatures.
  */
 @NodeEntity
-public class LocalitySensitiveHash{
+public class LocalitySensitiveHash extends Entity{
     /**
      * the hashvalue of the band
      */
-    @Id
+    @Property
     private Long hashValue;
-    /**
+   /* /**
      * the number of Bands hashed from each signature.
-     */
+     *
     @Property("numberofbands")
     private int numberOfBands;
     /**
      * the number of bucket or size of the hashtable used in the hasfunctions for MinHashing and the hashing of bands.
-     */
+     *
     @Property("hashtablesize")
     private int hashtableSize;
     /**
      * the number of hashfunctions uses in creating the signature by MinHashing
-     */
+
     @Property("numberoffunctions")
-    private int numberOfHashfunctions;
-    @Relationship(type="lshHashedto",direction="INCOMING")
+    private int numberOfHashfunctions;*/
+    @Relationship(type="lshHashedTo",direction="INCOMING")
     private List<Entity> hashedToThis;
     public LocalitySensitiveHash(){}
 
     /**
      * A constructor creating the Locality-sensitive Hash without connections to any nodes but with its attributes set.
      * @param hashValue
-     * @param hashtableSize
-     * @param numberOfHashfunctions
-     * @param numberOfBands
      */
-    public LocalitySensitiveHash(int hashValue, int hashtableSize, int numberOfHashfunctions, int numberOfBands){
+    public LocalitySensitiveHash(int hashValue){
         this.hashValue = (long) hashValue;
-        this.numberOfBands  = numberOfBands;
-        this.hashtableSize = hashtableSize;
-        this.numberOfHashfunctions = numberOfHashfunctions;
         this.hashedToThis = new ArrayList<>();
     }
+    public LocalitySensitiveHash(int hashValue, Entity initialHashedToThis){
+        this.hashValue = (long) hashValue;
+        this.hashedToThis = new ArrayList<>();
+        this.hashedToThis.add(initialHashedToThis);
+    }
+
 
     /**
      *
      * @return a List of all Entities whose compareString has a band of signatures which hashes to this hash.
      */
     public List<Entity> getHashedToThis(){ return this.hashedToThis; }
+    public long getHashValue(){ return this.hashValue; }
 }

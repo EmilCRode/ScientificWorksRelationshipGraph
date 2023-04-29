@@ -4,15 +4,9 @@ import org.grobid.core.data.BiblioItem;
 import org.grobid.core.data.Date;
 import org.grobid.core.data.Person;
 import org.neo4j.ogm.annotation.*;
-import org.neo4j.ogm.annotation.typeconversion.DateString;
-import org.neo4j.ogm.id.UuidStrategy;
 
 import java.util.*;
-import java.util.logging.Logger;
 import org.apache.commons.lang3.StringUtils;
-import org.wipo.analyzers.wipokr.utils.StringUtil;
-
-import static org.LocalitySensitiveHashing.Hashing.generateLSHHash;
 
 @NodeEntity
 public class Work extends Entity{
@@ -52,16 +46,16 @@ public class Work extends Entity{
     @Relationship("CITES")
     private Set<Work> citations;
 
-    @Relationship(type="lshHashedto")
-    private List<LocalitySensitiveHash> lshHashesTo ;
+    @Relationship(type="lshHashedTo")
+    private final List<LocalitySensitiveHash> lshHashesTo ;
 
     public Work(){
         this.title = null;
         this.authors = new ArrayList<>();
-        //this.affiliatedOrganisations = new ArrayList<>();
         this.citations = new HashSet<>();
         this.sourcefiles = new ArrayList<>();
         this.lshHashesTo = new ArrayList<>();
+        //this.affiliatedOrganisations = new ArrayList<>();
     }
 
     public Work(BiblioItem bibItem, Neo4jHandler neo4jHandler, String sourcefile)throws IllegalAccessException{
@@ -77,8 +71,10 @@ public class Work extends Entity{
         if(authorsToProcess!= null){
             for (Person person : authorsToProcess) {
                 currentAuthor = Author.CreateUniqueAuthor(person, neo4jHandler);
-                currentAuthor.addCreatedWork(this);
-                addAuthor(currentAuthor);
+                if(currentAuthor != null) {
+                    currentAuthor.addCreatedWork(this);
+                    addAuthor(currentAuthor);
+                }
             }
         }
         this.citations = new HashSet<>();
@@ -92,17 +88,11 @@ public class Work extends Entity{
             this.publicationDay = grobidDate.getDay();
         }
         this.lshHashesTo = new ArrayList<>();
-
-        /*
-        int[] hashes = generateLSHHash(compareString(),2, Short.MAX_VALUE, (short) 240,80);
+        int[] hashes = neo4jHandler.getHashingHandler().generateLSHHash(compareString(),2, Short.MAX_VALUE, (short) 240,80);
         for(int hashValue: hashes){
-            LocalitySensitiveHash foundHashObject = (LocalitySensitiveHash) neo4jHandler.find(LocalitySensitiveHash.class, (long) hashValue);
-            if(foundHashObject == null){
-                foundHashObject = new LocalitySensitiveHash(hashValue, Short.MAX_VALUE,240,80);
-            }
-            foundHashObject.getHashedToThis().add(this);
-            this.lshHashesTo.add(foundHashObject);
-        }*/
+            LocalitySensitiveHash hashObject = neo4jHandler.createOrUpdateHashObject(hashValue, this);
+            this.lshHashesTo.add(hashObject);
+        }
         /*Adding affiliated Organizations to the work
         this.affiliatedOrganisations = new ArrayList<>();
         List<Affiliation> affiliationsToProcess = bibItem.getFullAffiliations();

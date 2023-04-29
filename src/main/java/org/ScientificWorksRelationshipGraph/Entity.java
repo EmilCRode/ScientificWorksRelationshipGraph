@@ -2,11 +2,6 @@ package org.ScientificWorksRelationshipGraph;
 
 import org.neo4j.ogm.annotation.GeneratedValue;
 import org.neo4j.ogm.annotation.Id;
-import org.neo4j.ogm.annotation.NodeEntity;
-import org.neo4j.ogm.annotation.Property;
-import org.neo4j.ogm.id.UuidStrategy;
-
-import java.util.UUID;
 
 
 abstract class Entity {
@@ -18,10 +13,6 @@ abstract class Entity {
         return id;
     }
 
-    void setId(Long id) {
-        this.id = id;
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -29,9 +20,7 @@ abstract class Entity {
 
         Entity entity = (Entity) o;
 
-        if (!id.equals(entity.id)) return false;
-
-        return true;
+        return id.equals(entity.id);
     }
 
     @Override
@@ -41,5 +30,5 @@ abstract class Entity {
 
     public String compareString(){
         return null;
-    };
+    }
 }

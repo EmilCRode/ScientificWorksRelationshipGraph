@@ -1,7 +1,7 @@
 package org.LocalitySensitiveHashing;
 
 public class BitVector {
-    private boolean[] bits;
+    private final boolean[] bits;
     public BitVector(int size){
         this.bits = new boolean[size];
     }

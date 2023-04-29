@@ -2,13 +2,9 @@ package org.ScientificWorksRelationshipGraph;
 
 import org.grobid.core.data.Person;
 import org.neo4j.ogm.annotation.*;
-import org.neo4j.ogm.id.UuidStrategy;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
-
-import static org.LocalitySensitiveHashing.Hashing.generateLSHHash;
 
 @NodeEntity
 public class Author extends Entity{
@@ -26,10 +22,8 @@ public class Author extends Entity{
     private String email;
     @Relationship(type="AUTHORED")
     private List<Work> createdWorks;
-    /*
-    @Relationship(type="lshHashedto")
+    @Relationship(type="lshHashedTo")
     private List<LocalitySensitiveHash> lshHashesTo ;
-    */
 
     /*@Relationship(type="AFFILIATED", direction=Relationship.UNDIRECTED)
     private List<Organization> affiliatedOrganizations;*/
@@ -42,17 +36,12 @@ public class Author extends Entity{
         if(person.getLastName() != null) this.lastName = person.getLastName().replaceAll("\\b(et|Et)\\b","");
         this.email = person.getEmail();
         this.createdWorks = new ArrayList<>();
-        /*
         this.lshHashesTo = new ArrayList<>();
-        int[] hashes = generateLSHHash(compareString(),2, Short.MAX_VALUE, (short) 240,80);
+        int[] hashes = neo4jHandler.getHashingHandler().generateLSHHash(compareString(),2, Short.MAX_VALUE, (short) 240,80);
         for(int hashValue: hashes){
-            LocalitySensitiveHash foundHashObject = (LocalitySensitiveHash) neo4jHandler.find(LocalitySensitiveHash.class, (long) hashValue);
-            if(foundHashObject == null){
-                foundHashObject = new LocalitySensitiveHash(hashValue, Short.MAX_VALUE,240,80);
-            }
-            foundHashObject.getHashedToThis().add(this);
-            this.lshHashesTo.add(foundHashObject);
-        }*/
+            LocalitySensitiveHash hashObject = neo4jHandler.createOrUpdateHashObject(hashValue, this);
+            this.lshHashesTo.add(hashObject);
+        }
         /*this.affiliatedOrganizations = new ArrayList<>();
         List<Affiliation> affiliationsToProcess= person.getAffiliations();
         if(affiliationsToProcess != null) {
@@ -63,6 +52,8 @@ public class Author extends Entity{
     }
     public static Author CreateUniqueAuthor(Person person, Neo4jHandler handler)throws IllegalAccessException{
         Author author = new Author(person, handler);
+        if(author.firstName == null || author.lastName == null){return null;}
+        if(author.firstName.isBlank()|| author.lastName.isBlank()){return null;}
         Author alias = (Author) handler.findSimilar(author);
         if(alias == null){
             handler.getAuthorsInDatabase().add(author);
@@ -138,12 +129,10 @@ public class Author extends Entity{
     }
     @Override
     public String compareString(){
-        StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append(this.title);
-        stringBuilder.append(this.firstName);
-        stringBuilder.append(this.middleName);
-        stringBuilder.append(this.lastName);
-        stringBuilder.append(this.email);
-        return stringBuilder.toString();
+        return this.title +
+                this.firstName +
+                this.middleName +
+                this.lastName +
+                this.email;
     }
 }

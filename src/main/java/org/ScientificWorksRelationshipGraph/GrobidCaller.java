@@ -24,7 +24,7 @@ public class GrobidCaller{
             Properties prop = new Properties();
             prop.load(new FileInputStream("grobid.properties"));
             String pGrobidHome = prop.getProperty("grobid.pGrobidHome");
-            GrobidHomeFinder grobidHomeFinder = new GrobidHomeFinder(Arrays.asList(pGrobidHome));
+            GrobidHomeFinder grobidHomeFinder = new GrobidHomeFinder(Collections.singletonList(pGrobidHome));
             GrobidProperties.getInstance(grobidHomeFinder);
 
             engine = GrobidFactory.getInstance().createEngine();

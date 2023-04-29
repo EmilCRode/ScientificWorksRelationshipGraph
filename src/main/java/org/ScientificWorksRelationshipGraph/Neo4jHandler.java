@@ -5,17 +5,16 @@ import org.neo4j.ogm.config.Configuration;
 import org.neo4j.ogm.session.Session;
 import org.neo4j.ogm.session.SessionFactory;
 
-import java.lang.reflect.Field;
 import java.util.*;
 
 public class Neo4jHandler {
 
-    private SessionFactory sessionFactory;
-    private Session session;
-    private List<Entity> worksInDatabase;
-    private List<Entity> authorsInDatabase;
-
-
+    private final SessionFactory sessionFactory;
+    private final Session session;
+    private final List<Entity> worksInDatabase;
+    private final List<Entity> authorsInDatabase;
+    private final List<LocalitySensitiveHash> hashesInDatabase;
+    private final Hashing hashingHandler;
 
     public Neo4jHandler(){
         Configuration configuration = new Configuration.Builder()
@@ -26,13 +25,11 @@ public class Neo4jHandler {
         session = sessionFactory.openSession();
         authorsInDatabase = new ArrayList<>();
         authorsInDatabase.addAll(session.loadAll(Author.class,2).stream().toList());
-        System.out.println("Loaded Authors from Database:" + authorsInDatabase);
-        for (Entity author: authorsInDatabase) {
-            System.out.println(author.getId());
-        };
         worksInDatabase = new ArrayList<>();
         worksInDatabase.addAll(session.loadAll(Work.class).stream().toList());
-        System.out.println("Loaded Works from Database");
+        hashesInDatabase = new ArrayList<>();
+        hashesInDatabase.addAll(session.loadAll(LocalitySensitiveHash.class).stream().toList());
+        this.hashingHandler = new Hashing();
     }
     private static final int DEPTH_LIST = 0;
     private static final int DEPTH_ENTITY = -1;
@@ -103,7 +100,7 @@ public class Neo4jHandler {
     }
     public List<Entity> getSimilarCandidates(Entity entity){
         List<Entity> candidates = new ArrayList<>();
-        int[] lshHashes = Hashing.generateLSHHash(entity.compareString(), 2, Integer.MAX_VALUE, (short) 240, 80);
+        int[] lshHashes = hashingHandler.generateLSHHash(entity.compareString(), 2, Integer.MAX_VALUE, (short) 240, 80);
         session.beginTransaction();
         for (int hashValue: lshHashes) {
             Map<String, Integer> parameters = new HashMap<>();
@@ -111,6 +108,23 @@ public class Neo4jHandler {
             candidates.addAll(session.queryForObject(LocalitySensitiveHash.class,"MATCH(hash: LocalitySensitiveHash {hashValue: $hashValue) RETURN hash", parameters).getHashedToThis());
         }
         return candidates;
+    }
+    public LocalitySensitiveHash createOrUpdateHashObject(int hashValue, Entity hashedEntity){
+        Map<String, Object> params = new HashMap<>(1);
+        params.put ("hashValue", hashValue);
+        LocalitySensitiveHash foundInDb = null;
+        for(LocalitySensitiveHash lsh: hashesInDatabase){
+            if(lsh.getHashValue() == hashValue) { foundInDb = lsh; }
+        }
+        if(foundInDb != null){
+            foundInDb.getHashedToThis().add(hashedEntity);
+            return foundInDb;
+        } else {
+            LocalitySensitiveHash newHashObject = new LocalitySensitiveHash(hashValue);
+            newHashObject.getHashedToThis().add(hashedEntity);
+            hashesInDatabase.add(newHashObject);
+            return newHashObject;
+        }
     }
     /*
     /**
@@ -159,4 +173,6 @@ public class Neo4jHandler {
     public List<Entity> getAuthorsInDatabase() {
         return authorsInDatabase;
     }
+
+    public Hashing getHashingHandler(){ return this.hashingHandler; }
 }
