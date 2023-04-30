@@ -98,14 +98,21 @@ public class Neo4jHandler {
         }
         return 0;
     }
-    public List<Entity> getSimilarCandidates(Entity entity){
-        List<Entity> candidates = new ArrayList<>();
-        int[] lshHashes = hashingHandler.generateLSHHash(entity.compareString(), 2, Integer.MAX_VALUE, (short) 240, 80);
-        session.beginTransaction();
-        for (int hashValue: lshHashes) {
-            Map<String, Integer> parameters = new HashMap<>();
-            parameters.put("hashValue", hashValue);
-            candidates.addAll(session.queryForObject(LocalitySensitiveHash.class,"MATCH(hash: LocalitySensitiveHash {hashValue: $hashValue) RETURN hash", parameters).getHashedToThis());
+    public List<Work> getSimilarCandidates(Work work){
+        List<Work> candidates = new ArrayList<>();
+        for(LocalitySensitiveHash lshHashObject: work.getHashes()){
+            for(Entity entity: lshHashObject.getHashedToThis()){
+                if(entity.getClass() == Work.class){ candidates.add((Work) entity);}
+            }
+        }
+        return candidates;
+    }
+    public List<Author> getSimilarCandidates(Author author){
+        List<Author> candidates = new ArrayList<>();
+        for(LocalitySensitiveHash lshHashObject: author.getHashes()){
+            for(Entity entity: lshHashObject.getHashedToThis()){
+                if(entity.getClass() == Author.class){ candidates.add((Author) entity);}
+            }
         }
         return candidates;
     }

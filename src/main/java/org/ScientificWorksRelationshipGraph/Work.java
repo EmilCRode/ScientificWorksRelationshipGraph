@@ -169,6 +169,7 @@ public class Work extends Entity{
     public void setSourcefiles(ArrayList<String> sourcefiles) {
         this.sourcefiles = sourcefiles;
     }
+    public List<LocalitySensitiveHash> getHashes(){ return this.lshHashesTo; }
 
     public void setFullGrobidDataString(String fullGrobidDataString) { this.fullGrobidDataString = fullGrobidDataString; }
 

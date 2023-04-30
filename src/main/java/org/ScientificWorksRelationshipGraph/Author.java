@@ -100,6 +100,8 @@ public class Author extends Entity{
         this.title = title;
     }
 
+    public List<LocalitySensitiveHash> getHashes(){ return this.lshHashesTo; }
+
     /*public List<Organization> getAffiliatedOrganizations() {
         return affiliatedOrganizations;
     }
