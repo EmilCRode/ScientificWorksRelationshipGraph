@@ -58,25 +58,48 @@ public class Neo4jHandler {
     /**
      * This method takes an entity and returns the most similar Entity by comparing it to all entities of its class in the database.
      * null is returned if the threshhold of @value #threshhold
-     * @param entity
+     * @param work
      * @return
      * @throws IllegalAccessException
      */
 
-    public Entity findSimilar(Entity entity) throws IllegalAccessException {
+    public Work findSimilar(Work work) throws IllegalAccessException {
         final double threshhold = 0.9;
-        Entity closestMatch = null;
+        Work closestMatch = null;
         double currentBestScore = 0;
         double currentScore;
+        List<Work> candidates = getSimilarCandidates(work);
 
-        Iterable<Entity> inDatabase = findAll(entity.getClass());
-
-        for (Entity entityToCompare : inDatabase) {
-                currentScore = entitySimilarity(entity, entityToCompare);
+        for (Work workToCompare : candidates) {
+                currentScore = entitySimilarity(work, workToCompare);
                 if (currentScore > currentBestScore) {
                     currentBestScore = currentScore;
-                    closestMatch = entityToCompare;
+                    closestMatch = workToCompare;
                 }
+        }
+        return (currentBestScore > threshhold) ? closestMatch : null;
+    }
+    /**
+     * This method takes an entity and returns the most similar Entity by comparing it to all entities of its class in the database.
+     * null is returned if the threshhold of @value #threshhold
+     * @param author
+     * @return
+     * @throws IllegalAccessException
+     */
+
+    public Author findSimilar(Author author) throws IllegalAccessException {
+        final double threshhold = 0.9;
+        Author closestMatch = null;
+        double currentBestScore = 0;
+        double currentScore;
+        List<Author> candidates = getSimilarCandidates(author);
+
+        for (Author authorToCompare : candidates) {
+            currentScore = entitySimilarity(author, authorToCompare);
+            if (currentScore > currentBestScore) {
+                currentBestScore = currentScore;
+                closestMatch = authorToCompare;
+            }
         }
         return (currentBestScore > threshhold) ? closestMatch : null;
     }

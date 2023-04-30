@@ -54,7 +54,7 @@ public class Author extends Entity{
         Author author = new Author(person, handler);
         if(author.firstName == null || author.lastName == null){return null;}
         if(author.firstName.isBlank()|| author.lastName.isBlank()){return null;}
-        Author alias = (Author) handler.findSimilar(author);
+        Author alias = handler.findSimilar(author);
         if(alias == null){
             handler.getAuthorsInDatabase().add(author);
             return author;

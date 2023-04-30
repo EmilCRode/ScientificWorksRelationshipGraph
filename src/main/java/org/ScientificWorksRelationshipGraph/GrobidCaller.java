@@ -1,10 +1,7 @@
 package org.ScientificWorksRelationshipGraph;
 
-import org.apache.commons.lang3.StringUtils;
-import org.grobid.core.data.Affiliation;
 import org.grobid.core.data.BibDataSet;
 import org.grobid.core.data.BiblioItem;
-import org.grobid.core.data.Person;
 import org.grobid.core.engines.Engine;
 import org.grobid.core.factory.GrobidFactory;
 import org.grobid.core.main.GrobidHomeFinder;
@@ -12,8 +9,6 @@ import org.grobid.core.utilities.GrobidProperties;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.*;
 
 public class GrobidCaller{
