@@ -12,7 +12,6 @@ public class Neo4jHandler {
     private final SessionFactory sessionFactory;
     private final Session session;
     private final List<Entity> worksInDatabase;
-    private final List<Entity> authorsInDatabase;
     private final List<LocalitySensitiveHash> hashesInDatabase;
     private final Hashing hashingHandler;
 
@@ -23,8 +22,6 @@ public class Neo4jHandler {
                 .build();
         sessionFactory = new SessionFactory(configuration, "org.ScientificWorksRelationshipGraph");
         session = sessionFactory.openSession();
-        authorsInDatabase = new ArrayList<>();
-        authorsInDatabase.addAll(session.loadAll(Author.class,2).stream().toList());
         worksInDatabase = new ArrayList<>();
         worksInDatabase.addAll(session.loadAll(Work.class).stream().toList());
         hashesInDatabase = new ArrayList<>();
@@ -36,11 +33,6 @@ public class Neo4jHandler {
     Object find(Class type, Long id) {
         return session.load(type, id, DEPTH_ENTITY);
     }
-
-    Iterable<Entity> findAll(Class type){
-        return (type == Work.class) ?  worksInDatabase : authorsInDatabase;
-    }
-
     public void delete(Class type, Long id) {
         session.delete(session.load(type, id));
     }
@@ -62,14 +54,12 @@ public class Neo4jHandler {
      * @return
      * @throws IllegalAccessException
      */
-
     public Work findSimilar(Work work) throws IllegalAccessException {
         final double threshhold = 0.9;
         Work closestMatch = null;
         double currentBestScore = 0;
         double currentScore;
-        List<Work> candidates = getSimilarCandidates(work);
-
+        Set<Work> candidates = getSimilarCandidates(work);
         for (Work workToCompare : candidates) {
                 currentScore = entitySimilarity(work, workToCompare);
                 if (currentScore > currentBestScore) {
@@ -86,13 +76,12 @@ public class Neo4jHandler {
      * @return
      * @throws IllegalAccessException
      */
-
     public Author findSimilar(Author author) throws IllegalAccessException {
         final double threshhold = 0.9;
         Author closestMatch = null;
         double currentBestScore = 0;
         double currentScore;
-        List<Author> candidates = getSimilarCandidates(author);
+        Set<Author> candidates = getSimilarCandidates(author);
 
         for (Author authorToCompare : candidates) {
             currentScore = entitySimilarity(author, authorToCompare);
@@ -121,8 +110,8 @@ public class Neo4jHandler {
         }
         return 0;
     }
-    public List<Work> getSimilarCandidates(Work work){
-        List<Work> candidates = new ArrayList<>();
+    public Set<Work> getSimilarCandidates(Work work){
+        Set<Work> candidates = new HashSet<>();
         for(LocalitySensitiveHash lshHashObject: work.getHashes()){
             for(Entity entity: lshHashObject.getHashedToThis()){
                 if(entity.getClass() == Work.class){ candidates.add((Work) entity);}
@@ -130,8 +119,8 @@ public class Neo4jHandler {
         }
         return candidates;
     }
-    public List<Author> getSimilarCandidates(Author author){
-        List<Author> candidates = new ArrayList<>();
+    public Set<Author> getSimilarCandidates(Author author){
+        Set<Author> candidates = new HashSet<>();
         for(LocalitySensitiveHash lshHashObject: author.getHashes()){
             for(Entity entity: lshHashObject.getHashedToThis()){
                 if(entity.getClass() == Author.class){ candidates.add((Author) entity);}
@@ -140,8 +129,6 @@ public class Neo4jHandler {
         return candidates;
     }
     public LocalitySensitiveHash createOrUpdateHashObject(int hashValue, Entity hashedEntity){
-        Map<String, Object> params = new HashMap<>(1);
-        params.put ("hashValue", hashValue);
         LocalitySensitiveHash foundInDb = null;
         for(LocalitySensitiveHash lsh: hashesInDatabase){
             if(lsh.getHashValue() == hashValue) { foundInDb = lsh; }
@@ -199,10 +186,5 @@ public class Neo4jHandler {
     public List<Entity> getWorksInDatabase() {
         return worksInDatabase;
     }
-
-    public List<Entity> getAuthorsInDatabase() {
-        return authorsInDatabase;
-    }
-
     public Hashing getHashingHandler(){ return this.hashingHandler; }
 }

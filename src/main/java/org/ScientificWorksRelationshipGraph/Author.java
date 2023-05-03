@@ -37,11 +37,6 @@ public class Author extends Entity{
         this.email = person.getEmail();
         this.createdWorks = new ArrayList<>();
         this.lshHashesTo = new ArrayList<>();
-        int[] hashes = neo4jHandler.getHashingHandler().generateLSHHash(compareString(),2, Short.MAX_VALUE, (short) 240,80);
-        for(int hashValue: hashes){
-            LocalitySensitiveHash hashObject = neo4jHandler.createOrUpdateHashObject(hashValue, this);
-            this.lshHashesTo.add(hashObject);
-        }
         /*this.affiliatedOrganizations = new ArrayList<>();
         List<Affiliation> affiliationsToProcess= person.getAffiliations();
         if(affiliationsToProcess != null) {
@@ -56,7 +51,7 @@ public class Author extends Entity{
         if(author.firstName.isBlank()|| author.lastName.isBlank()){return null;}
         Author alias = handler.findSimilar(author);
         if(alias == null){
-            handler.getAuthorsInDatabase().add(author);
+            author.createHashes(handler);
             return author;
         }
         return alias;
@@ -101,6 +96,14 @@ public class Author extends Entity{
     }
 
     public List<LocalitySensitiveHash> getHashes(){ return this.lshHashesTo; }
+
+    public void createHashes(Neo4jHandler neo4jHandler){
+        int[] hashValues = neo4jHandler.getHashingHandler().generateLSHHash(compareString(),2, Short.MAX_VALUE, (short) 240,80);
+        for(int hashValue: hashValues){
+            LocalitySensitiveHash hashObject = neo4jHandler.createOrUpdateHashObject(hashValue, this);
+            this.lshHashesTo.add(hashObject);
+        }
+    }
 
     /*public List<Organization> getAffiliatedOrganizations() {
         return affiliatedOrganizations;

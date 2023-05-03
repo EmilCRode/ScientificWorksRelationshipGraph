@@ -88,11 +88,6 @@ public class Work extends Entity{
             this.publicationDay = grobidDate.getDay();
         }
         this.lshHashesTo = new ArrayList<>();
-        int[] hashes = neo4jHandler.getHashingHandler().generateLSHHash(compareString(),2, Short.MAX_VALUE, (short) 240,80);
-        for(int hashValue: hashes){
-            LocalitySensitiveHash hashObject = neo4jHandler.createOrUpdateHashObject(hashValue, this);
-            this.lshHashesTo.add(hashObject);
-        }
         /*Adding affiliated Organizations to the work
         this.affiliatedOrganisations = new ArrayList<>();
         List<Affiliation> affiliationsToProcess = bibItem.getFullAffiliations();
@@ -107,12 +102,11 @@ public class Work extends Entity{
     public static Work createUniqueWork(BiblioItem bibItem, Neo4jHandler handler, String sourcefile)throws IllegalAccessException{
         if(StringUtils.isBlank(bibItem.getTitle())){ return null; }
         Work work = new Work(bibItem, handler, sourcefile);
-        Work alias = (Work) handler.findSimilar(work);
+        Work alias = handler.findSimilar(work);
         if(alias == null){
-            handler.getWorksInDatabase().add(work);
+            work.createHashes(handler);
             return work;
         }
-        //System.out.println("found alias: "+ alias.toString() + "\nfor: " + work.toString());
         return null; //returns null if there is an alias aka a duplicate NEEDS_TEST
     }
 
@@ -180,6 +174,13 @@ public class Work extends Entity{
     public void addAffiliatedOrganization(Organization org){ this.affiliatedOrganisations.add(org); }
      */
 
+    public void createHashes(Neo4jHandler neo4jHandler){
+        int[] hashValues = neo4jHandler.getHashingHandler().generateLSHHash(compareString(),2, Short.MAX_VALUE, (short) 240,80);
+        for(int hashValue: hashValues){
+            LocalitySensitiveHash hashObject = neo4jHandler.createOrUpdateHashObject(hashValue, this);
+            this.lshHashesTo.add(hashObject);
+        }
+    }
     public double compareTo(Work other){
         if(this.equals(other)){
             System.out.println("Work: " +this.title+ " matched itself");
