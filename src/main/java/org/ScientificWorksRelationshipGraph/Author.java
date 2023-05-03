@@ -45,13 +45,14 @@ public class Author extends Entity{
             }
         }*/
     }
-    public static Author CreateUniqueAuthor(Person person, Neo4jHandler handler)throws IllegalAccessException{
-        Author author = new Author(person, handler);
+    public static Author CreateUniqueAuthor(Person person, Neo4jHandler neo4jHandler)throws IllegalAccessException{
+        Author author = new Author(person, neo4jHandler);
         if(author.firstName == null || author.lastName == null){return null;}
         if(author.firstName.isBlank()|| author.lastName.isBlank()){return null;}
-        Author alias = handler.findSimilar(author);
+        int[] hashValues = neo4jHandler.getHashingHandler().generateLSHHash(author.compareString(),2, Short.MAX_VALUE, (short) 240,80);
+        Author alias = (Author) neo4jHandler.findSimilar(author, hashValues);
         if(alias == null){
-            author.createHashes(handler);
+            author.addHashes(neo4jHandler, hashValues);
             return author;
         }
         return alias;
@@ -97,8 +98,7 @@ public class Author extends Entity{
 
     public List<LocalitySensitiveHash> getHashes(){ return this.lshHashesTo; }
 
-    public void createHashes(Neo4jHandler neo4jHandler){
-        int[] hashValues = neo4jHandler.getHashingHandler().generateLSHHash(compareString(),2, Short.MAX_VALUE, (short) 240,80);
+    public void addHashes(Neo4jHandler neo4jHandler, int[] hashValues){
         for(int hashValue: hashValues){
             LocalitySensitiveHash hashObject = neo4jHandler.createOrUpdateHashObject(hashValue, this);
             this.lshHashesTo.add(hashObject);

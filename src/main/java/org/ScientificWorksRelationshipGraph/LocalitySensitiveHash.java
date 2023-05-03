@@ -19,7 +19,7 @@ public class LocalitySensitiveHash extends Entity{
      * the hashvalue of the band
      */
     @Property
-    private Long hashValue;
+    private int hashValue;
    /* /**
      * the number of Bands hashed from each signature.
      *
@@ -44,11 +44,11 @@ public class LocalitySensitiveHash extends Entity{
      * @param hashValue
      */
     public LocalitySensitiveHash(int hashValue){
-        this.hashValue = (long) hashValue;
+        this.hashValue = hashValue;
         this.hashedToThis = new ArrayList<>();
     }
     public LocalitySensitiveHash(int hashValue, Entity initialHashedToThis){
-        this.hashValue = (long) hashValue;
+        this.hashValue = hashValue;
         this.hashedToThis = new ArrayList<>();
         this.hashedToThis.add(initialHashedToThis);
     }
@@ -57,5 +57,5 @@ public class LocalitySensitiveHash extends Entity{
      * @return a List of all Entities whose compareString has a band of signatures which hashes to this hash.
      */
     public List<Entity> getHashedToThis(){ return this.hashedToThis; }
-    public long getHashValue(){ return this.hashValue; }
+    public int getHashValue(){ return this.hashValue; }
 }

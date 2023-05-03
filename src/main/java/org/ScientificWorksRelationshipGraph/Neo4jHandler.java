@@ -11,8 +11,7 @@ public class Neo4jHandler {
 
     private final SessionFactory sessionFactory;
     private final Session session;
-    private final List<Entity> worksInDatabase;
-    private final List<LocalitySensitiveHash> hashesInDatabase;
+    private final Map<Integer, LocalitySensitiveHash> hashesInDatabase;
     private final Hashing hashingHandler;
 
     public Neo4jHandler(){
@@ -22,10 +21,10 @@ public class Neo4jHandler {
                 .build();
         sessionFactory = new SessionFactory(configuration, "org.ScientificWorksRelationshipGraph");
         session = sessionFactory.openSession();
-        worksInDatabase = new ArrayList<>();
-        worksInDatabase.addAll(session.loadAll(Work.class).stream().toList());
-        hashesInDatabase = new ArrayList<>();
-        hashesInDatabase.addAll(session.loadAll(LocalitySensitiveHash.class).stream().toList());
+        hashesInDatabase = new HashMap<>();
+        for(LocalitySensitiveHash lshObjectInDb: session.loadAll(LocalitySensitiveHash.class).stream().toList()){
+            hashesInDatabase.put(lshObjectInDb.getHashValue(), lshObjectInDb);
+        }
         this.hashingHandler = new Hashing();
     }
     private static final int DEPTH_LIST = 0;
@@ -46,51 +45,28 @@ public class Neo4jHandler {
         return session.load(entity.getClass(), entity.getId());
     }
     public void closeSession(){ this.sessionFactory.close();}
-
     /**
      * This method takes an entity and returns the most similar Entity by comparing it to all entities of its class in the database.
      * null is returned if the threshhold of @value #threshhold
-     * @param work
+     * @param entity
      * @return
      * @throws IllegalAccessException
      */
-    public Work findSimilar(Work work) throws IllegalAccessException {
+    public Entity findSimilar(Entity entity, int[] hashValues) throws IllegalAccessException {
         final double threshhold = 0.9;
-        Work closestMatch = null;
+        Entity closestMatch = null;
         double currentBestScore = 0;
         double currentScore;
-        Set<Work> candidates = getSimilarCandidates(work);
-        for (Work workToCompare : candidates) {
-                currentScore = entitySimilarity(work, workToCompare);
-                if (currentScore > currentBestScore) {
-                    currentBestScore = currentScore;
-                    closestMatch = workToCompare;
-                }
-        }
-        return (currentBestScore > threshhold) ? closestMatch : null;
-    }
-    /**
-     * This method takes an entity and returns the most similar Entity by comparing it to all entities of its class in the database.
-     * null is returned if the threshhold of @value #threshhold
-     * @param author
-     * @return
-     * @throws IllegalAccessException
-     */
-    public Author findSimilar(Author author) throws IllegalAccessException {
-        final double threshhold = 0.9;
-        Author closestMatch = null;
-        double currentBestScore = 0;
-        double currentScore;
-        Set<Author> candidates = getSimilarCandidates(author);
+        Set<Entity> candidates = getSimilarCandidates(hashValues, entity.getClass());
 
-        for (Author authorToCompare : candidates) {
-            currentScore = entitySimilarity(author, authorToCompare);
+        for (Entity authorToCompare : candidates) {
+            currentScore = entitySimilarity(entity, authorToCompare);
             if (currentScore > currentBestScore) {
                 currentBestScore = currentScore;
                 closestMatch = authorToCompare;
             }
         }
-        return (currentBestScore > threshhold) ? closestMatch : null;
+        return (currentBestScore > threshhold) ? (Author) closestMatch : null;
     }
     /**
      This method is used to compare two Entities. it returns a value between 0 and 1 (some unexpected floating point behaviour might result in values slightly outside of scope)
@@ -110,36 +86,29 @@ public class Neo4jHandler {
         }
         return 0;
     }
-    public Set<Work> getSimilarCandidates(Work work){
-        Set<Work> candidates = new HashSet<>();
-        for(LocalitySensitiveHash lshHashObject: work.getHashes()){
-            for(Entity entity: lshHashObject.getHashedToThis()){
-                if(entity.getClass() == Work.class){ candidates.add((Work) entity);}
-            }
+    public Set<Entity> getSimilarCandidates(int[] hashValues, Class type){
+        Set<Entity> candidates = new HashSet<>();
+        Set<LocalitySensitiveHash> lshObjects = new HashSet<>();
+        for(int i:hashValues){
+            lshObjects.add(this.hashesInDatabase.get(i));
         }
-        return candidates;
-    }
-    public Set<Author> getSimilarCandidates(Author author){
-        Set<Author> candidates = new HashSet<>();
-        for(LocalitySensitiveHash lshHashObject: author.getHashes()){
-            for(Entity entity: lshHashObject.getHashedToThis()){
-                if(entity.getClass() == Author.class){ candidates.add((Author) entity);}
+        lshObjects.remove(null);
+        for(LocalitySensitiveHash localitySensitiveHash: lshObjects){
+            for(Entity possibleCandidate: localitySensitiveHash.getHashedToThis()){
+                if(possibleCandidate.getClass().equals(type)) { candidates.add(possibleCandidate); }
             }
         }
         return candidates;
     }
     public LocalitySensitiveHash createOrUpdateHashObject(int hashValue, Entity hashedEntity){
-        LocalitySensitiveHash foundInDb = null;
-        for(LocalitySensitiveHash lsh: hashesInDatabase){
-            if(lsh.getHashValue() == hashValue) { foundInDb = lsh; }
-        }
+        LocalitySensitiveHash foundInDb = hashesInDatabase.get(hashValue);
         if(foundInDb != null){
             foundInDb.getHashedToThis().add(hashedEntity);
             return foundInDb;
         } else {
             LocalitySensitiveHash newHashObject = new LocalitySensitiveHash(hashValue);
             newHashObject.getHashedToThis().add(hashedEntity);
-            hashesInDatabase.add(newHashObject);
+            hashesInDatabase.put(hashValue, newHashObject);
             return newHashObject;
         }
     }
@@ -183,8 +152,5 @@ public class Neo4jHandler {
         } catch (NullPointerException exception) {System.out.println(exception.getMessage());}
         return -1;
     }*/
-    public List<Entity> getWorksInDatabase() {
-        return worksInDatabase;
-    }
     public Hashing getHashingHandler(){ return this.hashingHandler; }
 }

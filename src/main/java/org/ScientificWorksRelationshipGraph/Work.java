@@ -99,12 +99,13 @@ public class Work extends Entity{
     }
 
 
-    public static Work createUniqueWork(BiblioItem bibItem, Neo4jHandler handler, String sourcefile)throws IllegalAccessException{
+    public static Work createUniqueWork(BiblioItem bibItem, Neo4jHandler neo4jHandler, String sourcefile)throws IllegalAccessException{
         if(StringUtils.isBlank(bibItem.getTitle())){ return null; }
-        Work work = new Work(bibItem, handler, sourcefile);
-        Work alias = handler.findSimilar(work);
+        Work work = new Work(bibItem, neo4jHandler, sourcefile);
+        int[] hashValues = neo4jHandler.getHashingHandler().generateLSHHash(work.compareString(),2, Short.MAX_VALUE, (short) 240,80);
+        Work alias = (Work) neo4jHandler.findSimilar(work, hashValues);
         if(alias == null){
-            work.createHashes(handler);
+            work.createHashes(neo4jHandler);
             return work;
         }
         return null; //returns null if there is an alias aka a duplicate NEEDS_TEST
