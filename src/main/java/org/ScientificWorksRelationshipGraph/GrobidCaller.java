@@ -39,14 +39,14 @@ public class GrobidCaller{
                 System.out.println("Title not found for Document: " + pdfFile.getName());
                 return;
             }
-            if (resHeader.getFullAuthors() == null) {
+            /*if (resHeader.getFullAuthors() == null) {
                 System.out.println("Authors not found for Document: " + pdfFile.getName());
                 return;
             }
             if (resHeader.getFullAuthors().isEmpty()) {
                 System.out.println("Authors not found for Document: " + pdfFile.getName());
                 return;
-            }
+            }*/
             Work work = Work.createUniqueWork(resHeader, handler, pdfFile.getName());
             if(work == null){return;}//Remove when MERGE is implemented
             work.setDiscipline(discipline);

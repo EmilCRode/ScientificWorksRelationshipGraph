@@ -22,7 +22,7 @@ public class Neo4jHandler {
         sessionFactory = new SessionFactory(configuration, "org.ScientificWorksRelationshipGraph");
         session = sessionFactory.openSession();
         hashesInDatabase = new HashMap<>();
-        for(LocalitySensitiveHash lshObjectInDb: session.loadAll(LocalitySensitiveHash.class).stream().toList()){
+        for(LocalitySensitiveHash lshObjectInDb: session.loadAll(LocalitySensitiveHash.class,2).stream().toList()){
             hashesInDatabase.put(lshObjectInDb.getHashValue(), lshObjectInDb);
         }
         this.hashingHandler = new Hashing();
@@ -66,7 +66,7 @@ public class Neo4jHandler {
                 closestMatch = authorToCompare;
             }
         }
-        return (currentBestScore > threshhold) ? (Author) closestMatch : null;
+        return (currentBestScore > threshhold) ? closestMatch : null;
     }
     /**
      This method is used to compare two Entities. it returns a value between 0 and 1 (some unexpected floating point behaviour might result in values slightly outside of scope)
