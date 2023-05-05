@@ -24,31 +24,25 @@ public class Work extends Entity{
      */
     @Property
     private int publicationDay;
-
     @Property
     private String discipline;
-
     @Property
     private String journal;
-
     @Property
     private ArrayList<String> sourcefiles;
-
     @Property
     private String fullGrobidDataString;
-
+    @Property
+    private String doi;
     @Relationship(type="AUTHORED", direction = Relationship.INCOMING)
     private List<Author> authors;
     /*@Relationship ("PUBLISHED_AT")
     private List<Organization> affiliatedOrganisations;
-
-     */
+    */
     @Relationship("CITES")
     private Set<Work> citations;
-
     @Relationship(type="lshHashedTo")
     private final List<LocalitySensitiveHash> lshHashesTo ;
-
     public Work(){
         this.title = null;
         this.authors = new ArrayList<>();
@@ -57,7 +51,6 @@ public class Work extends Entity{
         this.lshHashesTo = new ArrayList<>();
         //this.affiliatedOrganisations = new ArrayList<>();
     }
-
     public Work(BiblioItem bibItem, Neo4jHandler neo4jHandler, String sourcefile)throws IllegalAccessException{
         this.title = bibItem.getTitle();
         if(this.title == null || this.title.isBlank()){
@@ -87,6 +80,7 @@ public class Work extends Entity{
             this.publicationMonth = grobidDate.getMonth();
             this.publicationDay = grobidDate.getDay();
         }
+        this.doi = bibItem.getDOI();
         this.lshHashesTo = new ArrayList<>();
         /*Adding affiliated Organizations to the work
         this.affiliatedOrganisations = new ArrayList<>();
@@ -97,8 +91,6 @@ public class Work extends Entity{
             }
         }*/
     }
-
-
     public static Work createUniqueWork(BiblioItem bibItem, Neo4jHandler neo4jHandler, String sourcefile)throws IllegalAccessException{
         if(StringUtils.isBlank(bibItem.getTitle())){ return null; }
         Work work = new Work(bibItem, neo4jHandler, sourcefile);
@@ -110,29 +102,17 @@ public class Work extends Entity{
         }
         return null; //returns null if there is an alias aka a duplicate NEEDS_TEST
     }
-
     public String getTitle() { return title; }
-
     public void setTitle(String title) { this.title = title; }
-
     public int getPublicationYear() { return publicationYear; }
-
     public int getPublicationMonth() { return publicationMonth; }
-
     public int getPublicationDay() { return publicationDay; }
-
     public List<Author> getAuthors() { return authors; }
-
     public void setAuthors(List<Author> authors) { this.authors = authors; }
-
     public void addAuthor(Author author){ this.authors.add(author); }
-
     public Set<Work> getCitations() { return citations; }
-
     public void setCitations(Set<Work> citations) { this.citations = citations; }
-
     public void addCitation(Work citedWork){ this.citations.add(citedWork); }
-
     /*public java.util.Date getPublicationDate() { return publicationDate; }
     public void setPublicationDate(Date publicationDate) {
         this.publicationDate = publicationDate;
@@ -142,39 +122,31 @@ public class Work extends Entity{
             this.publicationDay = publicationDate.getDay();
         }
     }*/
-
     public String getDiscipline() { return discipline; }
-
     public void setDiscipline(String discipline) { this.discipline = discipline; }
-
     public String getJournal() {
         return journal;
     }
-
     public void setJournal(String journal) {
         this.journal = journal;
     }
-
     public String getFullGrobidDataString() { return fullGrobidDataString; }
-
     public ArrayList<String> getSourcefiles() {
         return sourcefiles;
     }
-
+    public String getDoi() { return doi; }
+    public void setDoi(String doi) { this.doi = doi; }
     public void setSourcefiles(ArrayList<String> sourcefiles) {
         this.sourcefiles = sourcefiles;
     }
     public List<LocalitySensitiveHash> getHashes(){ return this.lshHashesTo; }
-
     public void setFullGrobidDataString(String fullGrobidDataString) { this.fullGrobidDataString = fullGrobidDataString; }
-
     /*public List<Organization> getAffiliatedOrganisations() { return affiliatedOrganisations; }
 
     public void setAffiliatedOrganisations(List<Organization> affiliatedOrganisations) { this.affiliatedOrganisations = affiliatedOrganisations; }
 
     public void addAffiliatedOrganization(Organization org){ this.affiliatedOrganisations.add(org); }
      */
-
     public void createHashes(Neo4jHandler neo4jHandler){
         int[] hashValues = neo4jHandler.getHashingHandler().generateLSHHash(compareString(),2, Short.MAX_VALUE, (short) 240,80);
         for(int hashValue: hashValues){
@@ -183,6 +155,7 @@ public class Work extends Entity{
         }
     }
     public double compareTo(Work other){
+        short similarityDivident = 9;
         if(this.equals(other)){
             System.out.println("Work: " +this.title+ " matched itself");
             return 1;}
@@ -192,13 +165,16 @@ public class Work extends Entity{
         }
         double similarity = 6*Distances.weightedDamerauLevenshteinSimilarity(this.title, other.getTitle());
         similarity += 3*Distances.compareAuthors(this.authors, other.getAuthors());
+        if(this.doi != null && other.doi != null){
+            similarity += (this.doi.equals(other.doi))? 1 : 0;
+            similarityDivident ++;
+        }
         /*if(this.publicationDate != null && other.getPublicationDate() != null){
             similarity += (this.publicationDate.compareTo(other.getPublicationDate()) == 0) ? 1 : 0;
         } else { similarity += (this.publicationDate == null || other.getPublicationDate() == null) ? 0 : 1;}*/
         //if(Double.isNaN(similarity)) System.out.println("this: " + this.toString() + "\nother: " + other.toString() + "\n\nSimilarity: " + similarity / 10);
-        return similarity / 9;
+        return similarity / similarityDivident;
     }
-
     @Override
     public String toString() {
         return "Work{" +

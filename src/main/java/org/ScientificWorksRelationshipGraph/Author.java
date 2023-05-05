@@ -8,7 +8,6 @@ import java.util.List;
 
 @NodeEntity
 public class Author extends Entity{
-
     @Property("title")
     private String title;
     @Property("lastname")
@@ -17,18 +16,15 @@ public class Author extends Entity{
     private String firstName;
     @Property("middlename")
     private String middleName;
-
     @Property("email")
     private String email;
     @Relationship(type="AUTHORED")
     private List<Work> createdWorks;
     @Relationship(type="lshHashedTo")
     private List<LocalitySensitiveHash> lshHashesTo ;
-
     /*@Relationship(type="AFFILIATED", direction=Relationship.UNDIRECTED)
     private List<Organization> affiliatedOrganizations;*/
     public Author(){}
-
     public Author(Person person, Neo4jHandler neo4jHandler){
         this.title = person.getTitle();
         if(person.getFirstName()!= null) this.firstName = person.getFirstName().replaceAll("\\b(et|Et)\\b","");
@@ -57,62 +53,30 @@ public class Author extends Entity{
         }
         return alias;
     }
-
-    public String getFirstName() {
-        return firstName;
-    }
-
-    public void setFirstName(String firstName) {
-        this.firstName = firstName;
-    }
-
-    public String getMiddleName() { return middleName; }
-
-    public void setMiddleName(String middleName) { this.middleName = middleName; }
-
-    public String getLastName() {
-        return lastName;
-    }
-
-    public void setLastName(String lastName) {
-        this.lastName = lastName;
-    }
-
-    public List<Work> getCreatedWorks() {
-        return createdWorks;
-    }
-
-    public void setCreatedWorks(List<Work> createdWorks) {
-        this.createdWorks = createdWorks;
-    }
-
+    public String getFirstName(){ return firstName; }
+    public void setFirstName(String firstName){ this.firstName = firstName; }
+    public String getMiddleName(){ return middleName; }
+    public void setMiddleName(String middleName){ this.middleName = middleName; }
+    public String getLastName(){ return lastName; }
+    public void setLastName(String lastName){ this.lastName = lastName;}
+    public List<Work> getCreatedWorks(){ return createdWorks; }
+    public void setCreatedWorks(List<Work> createdWorks){ this.createdWorks = createdWorks; }
     public void addCreatedWork(Work work){ this.createdWorks.add(work); }
-
-    public String getTitle() {
-        return title;
-    }
-
-    public void setTitle(String title) {
-        this.title = title;
-    }
-
+    public String getTitle(){ return title; }
+    public void setTitle(String title){ this.title = title; }
     public List<LocalitySensitiveHash> getHashes(){ return this.lshHashesTo; }
-
     public void addHashes(Neo4jHandler neo4jHandler, int[] hashValues){
         for(int hashValue: hashValues){
             LocalitySensitiveHash hashObject = neo4jHandler.createOrUpdateHashObject(hashValue, this);
             this.lshHashesTo.add(hashObject);
         }
     }
-
     /*public List<Organization> getAffiliatedOrganizations() {
         return affiliatedOrganizations;
     }
-
     public void setAffiliatedOrganizations(List<Organization> affiliatedOrganizations) {
         this.affiliatedOrganizations = affiliatedOrganizations;
     }*/
-
     @Override
     public String toString(){
         return "Author{" +
@@ -123,7 +87,6 @@ public class Author extends Entity{
                 ", e-Mail: " + this.email +
                 " }";
     }
-
     public double compareTo(Author other){
         if(this.equals(other)){ return 1; }
         double similarity = Distances.weightedDamerauLevenshteinSimilarity(this.firstName, other.getFirstName());

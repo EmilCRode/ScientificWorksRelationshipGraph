@@ -59,11 +59,11 @@ public class Neo4jHandler {
         double currentScore;
         Set<Entity> candidates = getSimilarCandidates(hashValues, entity.getClass());
 
-        for (Entity authorToCompare : candidates) {
-            currentScore = entitySimilarity(entity, authorToCompare);
+        for (Entity entityToCompare : candidates) {
+            currentScore = entitySimilarity(entity, entityToCompare);
             if (currentScore > currentBestScore) {
                 currentBestScore = currentScore;
-                closestMatch = authorToCompare;
+                closestMatch = entityToCompare;
             }
         }
         return (currentBestScore > threshhold) ? closestMatch : null;

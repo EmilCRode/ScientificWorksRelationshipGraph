@@ -21,16 +21,14 @@ public class GrobidCaller{
             String pGrobidHome = prop.getProperty("grobid.pGrobidHome");
             GrobidHomeFinder grobidHomeFinder = new GrobidHomeFinder(Collections.singletonList(pGrobidHome));
             GrobidProperties.getInstance(grobidHomeFinder);
-
             engine = GrobidFactory.getInstance().createEngine();
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
-
     public void grobidToObjects (File pdfFile, int consolidate, Neo4jHandler handler, String discipline, String journal) {
         try {
-                // Biblio object for the result
+            // Biblio object for the result
             BiblioItem resHeader = new BiblioItem();
             engine.processHeader(pdfFile.getPath(), consolidate, resHeader);
             if(pdfFile.getName() != null){ resHeader.setTitle(pdfFile.getName().replace(".pdf","").trim()); }
@@ -66,8 +64,6 @@ public class GrobidCaller{
             e.printStackTrace();
         }
     }
-
     public void close() {
     }
-
 }
