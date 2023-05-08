@@ -73,7 +73,7 @@ public class Work extends Entity{
         this.citations = new HashSet<>();
         this.sourcefiles = new ArrayList<>();
         this.sourcefiles.add(sourcefile);
-        this.fullGrobidDataString = bibItem.toString().replaceAll("\\w*='*null'*,*","");
+        //this.fullGrobidDataString = bibItem.toString().replaceAll("\\w*='*null'*,*","");
         Date grobidDate = bibItem.getNormalizedPublicationDate();
         if(grobidDate != null) {
             this.publicationYear = grobidDate.getYear();
@@ -94,10 +94,10 @@ public class Work extends Entity{
     public static Work createUniqueWork(BiblioItem bibItem, Neo4jHandler neo4jHandler, String sourcefile)throws IllegalAccessException{
         if(StringUtils.isBlank(bibItem.getTitle())){ return null; }
         Work work = new Work(bibItem, neo4jHandler, sourcefile);
-        int[] hashValues = neo4jHandler.getHashingHandler().generateLSHHash(work.compareString(),2, Short.MAX_VALUE, (short) 240,80);
+        int[] hashValues = neo4jHandler.getHashingHandler().generateLSHHash(work.compareString());
         Work alias = (Work) neo4jHandler.findSimilar(work, hashValues);
         if(alias == null){
-            work.createHashes(neo4jHandler);
+            work.addHashes(neo4jHandler, hashValues);
             return work;
         }
         return null; //returns null if there is an alias aka a duplicate NEEDS_TEST
@@ -147,15 +147,14 @@ public class Work extends Entity{
 
     public void addAffiliatedOrganization(Organization org){ this.affiliatedOrganisations.add(org); }
      */
-    public void createHashes(Neo4jHandler neo4jHandler){
-        int[] hashValues = neo4jHandler.getHashingHandler().generateLSHHash(compareString(),2, Short.MAX_VALUE, (short) 240,80);
+    public void addHashes(Neo4jHandler neo4jHandler, int[] hashValues){
         for(int hashValue: hashValues){
             LocalitySensitiveHash hashObject = neo4jHandler.createOrUpdateHashObject(hashValue, this);
             this.lshHashesTo.add(hashObject);
         }
     }
     public double compareTo(Work other){
-        short similarityDivident = 9;
+        int similarityDivident = 9;
         if(this.equals(other)){
             System.out.println("Work: " +this.title+ " matched itself");
             return 1;}
@@ -167,12 +166,11 @@ public class Work extends Entity{
         similarity += 3*Distances.compareAuthors(this.authors, other.getAuthors());
         if(this.doi != null && other.doi != null){
             similarity += (this.doi.equals(other.doi))? 1 : 0;
-            similarityDivident ++;
+            similarityDivident = similarityDivident + 1;
         }
         /*if(this.publicationDate != null && other.getPublicationDate() != null){
             similarity += (this.publicationDate.compareTo(other.getPublicationDate()) == 0) ? 1 : 0;
         } else { similarity += (this.publicationDate == null || other.getPublicationDate() == null) ? 0 : 1;}*/
-        //if(Double.isNaN(similarity)) System.out.println("this: " + this.toString() + "\nother: " + other.toString() + "\n\nSimilarity: " + similarity / 10);
         return similarity / similarityDivident;
     }
     @Override

@@ -13,7 +13,6 @@ public class Neo4jHandler {
     private final Session session;
     private final Map<Integer, LocalitySensitiveHash> hashesInDatabase;
     private final Hashing hashingHandler;
-
     public Neo4jHandler(){
         Configuration configuration = new Configuration.Builder()
                 .uri("bolt://neo4j:citations@localhost")
@@ -28,9 +27,13 @@ public class Neo4jHandler {
         this.hashingHandler = new Hashing();
     }
     private static final int DEPTH_LIST = 0;
-    private static final int DEPTH_ENTITY = -1;
+    private static final int DEPTH_ENTITY = 3;
     Object find(Class type, Long id) {
         return session.load(type, id, DEPTH_ENTITY);
+    }
+
+    Collection<Object> findAll(Class type){
+        return session.loadAll(type, 2);
     }
     public void delete(Class type, Long id) {
         session.delete(session.load(type, id));
@@ -41,7 +44,7 @@ public class Neo4jHandler {
     }
 
     Entity createOrUpdate(Entity entity) {
-        session.save(entity, -1);
+        session.save(entity, DEPTH_ENTITY);
         return session.load(entity.getClass(), entity.getId());
     }
     public void closeSession(){ this.sessionFactory.close();}
@@ -112,45 +115,5 @@ public class Neo4jHandler {
             return newHashObject;
         }
     }
-    /*
-    /**
-     * This method is used to compare the similarity of attributes of the same Class taken from Work and Author
-     * @param obj1
-     * @param obj2
-     * @return a score which should be between 0 and 1 (it exceedes 1 sometimes because of floating point weirdness)
-
-    public double attributeSimilarityScore(Object obj1, Object obj2){
-        switch(obj1.getClass().getSimpleName()){
-            case "String":
-                //Just compares if word tokens match (even if not in the right order
-                return Distances.cosineSimilarity((CharSequence) obj1, (CharSequence) obj2);
-            case "Integer":
-                //Assumes a year, returns 1 for same year and 0 otherwise
-                return Distances.compareYears((int) obj1, (int) obj2);
-            case "Date":
-                Date date1 = (Date) obj1;
-                int result = (date1.compareTo((Date) obj2) == 0) ? 1 : 0;
-                return result;
-            case "Author":
-                ((Author) obj1).compareTo((Author) obj2);
-            default:
-                System.out.println("[Error]: Attribute to compare is not of Type String, Integer or Date");
-        }
-        return 0;
-    }
-    public double attributeSimilarityScore(List<Object> objectList1, List<Object> objectList2){
-        try {
-            double result = 0;
-            int numberOfComparisons = 0;
-            for(int j = 0; j < objectList1.size(); j++) {
-                for(int k = 0; k < objectList2.size(); k++){
-                    result = result + attributeSimilarityScore(objectList1.get(j), objectList2.get(k));
-                    numberOfComparisons++;
-                }
-            }
-            return result / numberOfComparisons;
-        } catch (NullPointerException exception) {System.out.println(exception.getMessage());}
-        return -1;
-    }*/
     public Hashing getHashingHandler(){ return this.hashingHandler; }
 }

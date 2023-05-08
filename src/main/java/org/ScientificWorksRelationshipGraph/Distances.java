@@ -60,6 +60,8 @@ public class Distances {
         return 1- distance;
     }
     public static double compareAuthors(List<Author> authors1, List<Author> authors2){
+        if(authors1.equals(authors2)){return 1.0;}
+        if((authors2 == null || authors1 == null) || (authors1.isEmpty() || authors2.isEmpty())){ return 0.0;}
         int counter = 0;
         double matchingAuthors = 0;
         for (Author authorX: authors1) {

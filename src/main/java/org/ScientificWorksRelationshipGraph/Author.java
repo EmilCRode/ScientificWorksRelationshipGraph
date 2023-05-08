@@ -25,7 +25,7 @@ public class Author extends Entity{
     /*@Relationship(type="AFFILIATED", direction=Relationship.UNDIRECTED)
     private List<Organization> affiliatedOrganizations;*/
     public Author(){}
-    public Author(Person person, Neo4jHandler neo4jHandler){
+    public Author(Person person){
         this.title = person.getTitle();
         if(person.getFirstName()!= null) this.firstName = person.getFirstName().replaceAll("\\b(et|Et)\\b","");
         if(person.getMiddleName() != null) this.middleName = person.getMiddleName().replaceAll("\\b(et|Et)\\b","");
@@ -42,10 +42,10 @@ public class Author extends Entity{
         }*/
     }
     public static Author CreateUniqueAuthor(Person person, Neo4jHandler neo4jHandler)throws IllegalAccessException{
-        Author author = new Author(person, neo4jHandler);
+        Author author = new Author(person);
         if(author.firstName == null || author.lastName == null){return null;}
         if(author.firstName.isBlank()|| author.lastName.isBlank()){return null;}
-        int[] hashValues = neo4jHandler.getHashingHandler().generateLSHHash(author.compareString(),2, Short.MAX_VALUE, (short) 240,80);
+        int[] hashValues = neo4jHandler.getHashingHandler().generateLSHHash(author.compareString());
         Author alias = (Author) neo4jHandler.findSimilar(author, hashValues);
         if(alias == null){
             author.addHashes(neo4jHandler, hashValues);

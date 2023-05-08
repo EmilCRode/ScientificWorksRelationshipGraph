@@ -1,5 +1,6 @@
 package org.LocalitySensitiveHashing;
 
+import org.ScientificWorksRelationshipGraph.Config;
 import org.apache.commons.codec.digest.MurmurHash3;
 
 import java.nio.charset.StandardCharsets;
@@ -10,12 +11,12 @@ import java.util.List;
 
 public class Hashing {
     public Hashing(){}
-    public  int[] generateLSHHash(String inputString, int shinglesize, int hashtablesize, short numberHashfunction, int numberOfbands){
-        Shingling shingling = new Shingling(inputString, shinglesize);
-        BitVector bitVector = toBitVector(shingling, hashtablesize);
+    public  int[] generateLSHHash(String inputString){
+        Shingling shingling = new Shingling(inputString, Config.shingleSize);
+        BitVector bitVector = toBitVector(shingling, Config.hashtableSize);
         int sizeVector = bitVector.size();
-        int[] signature = signature(bitVector, numberHashfunction, hashtablesize);
-        return hashedBandsFromSignature(signature, numberOfbands);
+        int[] signature = signature(bitVector, Config.numberOfHashfunctions, Config.hashtableSize);
+        return hashedBandsFromSignature(signature, Config.numberOfBands, Config.hashtableSize);
     }
     public static BitVector toBitVector(Shingling shingling, int hashtableSize){
         BitVector bitvector = new BitVector(hashtableSize);
@@ -59,7 +60,7 @@ public class Hashing {
      * the .hashCode() method of String and the fact that two or more different integers concatenated can result in the same
      * string of digits. Like 122 and 12 resolving to 12212 while 12 and 212 resolve to 12212 too.
      */
-    public static int[] hashedBandsFromSignature(int[] signature, int numberOfBands){
+    public static int[] hashedBandsFromSignature(int[] signature, int numberOfBands, int hashtableSize){
         int bandsize  = (int) Math.ceil(signature.length  / (double) numberOfBands);
         int[] hashedBands = new int[numberOfBands];
         Arrays.fill(hashedBands,0);
@@ -70,7 +71,7 @@ public class Hashing {
                 workString.append(signature[i]);
             }
             //This normalizes the string to positive numbers only by doing a bitwise AND with Integer.MAX_VALUE
-            hashedBands[bucketIndex] = workString.toString().hashCode() & 0xfffffff;
+            hashedBands[bucketIndex] = (workString.toString().hashCode() & 0xfffffff)%hashtableSize;
         }
         return hashedBands;
     }
