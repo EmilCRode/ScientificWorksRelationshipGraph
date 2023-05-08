@@ -20,8 +20,6 @@ public class Author extends Entity{
     private String email;
     @Relationship(type="AUTHORED")
     private List<Work> createdWorks;
-    @Relationship(type="lshHashedTo")
-    private List<LocalitySensitiveHash> lshHashesTo ;
     /*@Relationship(type="AFFILIATED", direction=Relationship.UNDIRECTED)
     private List<Organization> affiliatedOrganizations;*/
     public Author(){}
@@ -32,7 +30,6 @@ public class Author extends Entity{
         if(person.getLastName() != null) this.lastName = person.getLastName().replaceAll("\\b(et|Et)\\b","");
         this.email = person.getEmail();
         this.createdWorks = new ArrayList<>();
-        this.lshHashesTo = new ArrayList<>();
         /*this.affiliatedOrganizations = new ArrayList<>();
         List<Affiliation> affiliationsToProcess= person.getAffiliations();
         if(affiliationsToProcess != null) {
@@ -45,10 +42,9 @@ public class Author extends Entity{
         Author author = new Author(person);
         if(author.firstName == null || author.lastName == null){return null;}
         if(author.firstName.isBlank()|| author.lastName.isBlank()){return null;}
-        int[] hashValues = neo4jHandler.getHashingHandler().generateLSHHash(author.compareString());
+        int[] hashValues = neo4jHandler.getHashingHandler().generateLSHHashValues(author.compareString());
         Author alias = (Author) neo4jHandler.findSimilar(author, hashValues);
         if(alias == null){
-            author.addHashes(neo4jHandler, hashValues);
             return author;
         }
         return alias;
@@ -64,13 +60,6 @@ public class Author extends Entity{
     public void addCreatedWork(Work work){ this.createdWorks.add(work); }
     public String getTitle(){ return title; }
     public void setTitle(String title){ this.title = title; }
-    public List<LocalitySensitiveHash> getHashes(){ return this.lshHashesTo; }
-    public void addHashes(Neo4jHandler neo4jHandler, int[] hashValues){
-        for(int hashValue: hashValues){
-            LocalitySensitiveHash hashObject = neo4jHandler.createOrUpdateHashObject(hashValue, this);
-            this.lshHashesTo.add(hashObject);
-        }
-    }
     /*public List<Organization> getAffiliatedOrganizations() {
         return affiliatedOrganizations;
     }

@@ -4,6 +4,7 @@ import org.LocalitySensitiveHashing.Hashing;
 import org.neo4j.ogm.config.Configuration;
 import org.neo4j.ogm.session.Session;
 import org.neo4j.ogm.session.SessionFactory;
+import org.neo4j.ogm.transaction.Transaction;
 
 import java.util.*;
 
@@ -21,10 +22,17 @@ public class Neo4jHandler {
         sessionFactory = new SessionFactory(configuration, "org.ScientificWorksRelationshipGraph");
         session = sessionFactory.openSession();
         hashesInDatabase = new HashMap<>();
-        for(LocalitySensitiveHash lshObjectInDb: session.loadAll(LocalitySensitiveHash.class,2).stream().toList()){
-            hashesInDatabase.put(lshObjectInDb.getHashValue(), lshObjectInDb);
-        }
         this.hashingHandler = new Hashing();
+        List<Entity> entitiesInDatabase = session.loadAll(Entity.class, 1).stream().toList();
+        for(Entity entity: entitiesInDatabase){
+            int[] currentHashValues = hashingHandler.generateLSHHashValues(entity.compareString());
+            for(Integer hashValue: currentHashValues){
+                LocalitySensitiveHash currentHashObject = hashesInDatabase.get(hashValue);
+                currentHashObject = (currentHashObject == null)? new LocalitySensitiveHash(hashValue): currentHashObject;
+                currentHashObject.getHashedToThis().add(entity);
+                hashesInDatabase.put(hashValue, currentHashObject);
+            }
+        }
     }
     private static final int DEPTH_LIST = 0;
     private static final int DEPTH_ENTITY = 3;
@@ -56,7 +64,7 @@ public class Neo4jHandler {
      * @throws IllegalAccessException
      */
     public Entity findSimilar(Entity entity, int[] hashValues) throws IllegalAccessException {
-        final double threshhold = 0.9;
+        final double threshhold = Config.SIMILARITY_THRESHHOLD;
         Entity closestMatch = null;
         double currentBestScore = 0;
         double currentScore;

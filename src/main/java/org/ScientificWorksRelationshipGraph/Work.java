@@ -41,14 +41,11 @@ public class Work extends Entity{
     */
     @Relationship("CITES")
     private Set<Work> citations;
-    @Relationship(type="lshHashedTo")
-    private final List<LocalitySensitiveHash> lshHashesTo ;
     public Work(){
         this.title = null;
         this.authors = new ArrayList<>();
         this.citations = new HashSet<>();
         this.sourcefiles = new ArrayList<>();
-        this.lshHashesTo = new ArrayList<>();
         //this.affiliatedOrganisations = new ArrayList<>();
     }
     public Work(BiblioItem bibItem, Neo4jHandler neo4jHandler, String sourcefile)throws IllegalAccessException{
@@ -81,7 +78,6 @@ public class Work extends Entity{
             this.publicationDay = grobidDate.getDay();
         }
         this.doi = bibItem.getDOI();
-        this.lshHashesTo = new ArrayList<>();
         /*Adding affiliated Organizations to the work
         this.affiliatedOrganisations = new ArrayList<>();
         List<Affiliation> affiliationsToProcess = bibItem.getFullAffiliations();
@@ -94,10 +90,9 @@ public class Work extends Entity{
     public static Work createUniqueWork(BiblioItem bibItem, Neo4jHandler neo4jHandler, String sourcefile)throws IllegalAccessException{
         if(StringUtils.isBlank(bibItem.getTitle())){ return null; }
         Work work = new Work(bibItem, neo4jHandler, sourcefile);
-        int[] hashValues = neo4jHandler.getHashingHandler().generateLSHHash(work.compareString());
+        int[] hashValues = neo4jHandler.getHashingHandler().generateLSHHashValues(work.compareString());
         Work alias = (Work) neo4jHandler.findSimilar(work, hashValues);
         if(alias == null){
-            work.addHashes(neo4jHandler, hashValues);
             return work;
         }
         return null; //returns null if there is an alias aka a duplicate NEEDS_TEST
@@ -139,7 +134,6 @@ public class Work extends Entity{
     public void setSourcefiles(ArrayList<String> sourcefiles) {
         this.sourcefiles = sourcefiles;
     }
-    public List<LocalitySensitiveHash> getHashes(){ return this.lshHashesTo; }
     public void setFullGrobidDataString(String fullGrobidDataString) { this.fullGrobidDataString = fullGrobidDataString; }
     /*public List<Organization> getAffiliatedOrganisations() { return affiliatedOrganisations; }
 
@@ -147,12 +141,6 @@ public class Work extends Entity{
 
     public void addAffiliatedOrganization(Organization org){ this.affiliatedOrganisations.add(org); }
      */
-    public void addHashes(Neo4jHandler neo4jHandler, int[] hashValues){
-        for(int hashValue: hashValues){
-            LocalitySensitiveHash hashObject = neo4jHandler.createOrUpdateHashObject(hashValue, this);
-            this.lshHashesTo.add(hashObject);
-        }
-    }
     public double compareTo(Work other){
         int similarityDivident = 9;
         if(this.equals(other)){

@@ -4,19 +4,16 @@ import org.ScientificWorksRelationshipGraph.Config;
 import org.apache.commons.codec.digest.MurmurHash3;
 
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.BitSet;
-import java.util.List;
 
 public class Hashing {
     public Hashing(){}
-    public  int[] generateLSHHash(String inputString){
-        Shingling shingling = new Shingling(inputString, Config.shingleSize);
-        BitVector bitVector = toBitVector(shingling, Config.hashtableSize);
+    public  int[] generateLSHHashValues(String inputString){
+        Shingling shingling = new Shingling(inputString, Config.SHINGLE_SIZE);
+        BitVector bitVector = toBitVector(shingling, Config.HASHTABLE_SIZE);
         int sizeVector = bitVector.size();
-        int[] signature = signature(bitVector, Config.numberOfHashfunctions, Config.hashtableSize);
-        return hashedBandsFromSignature(signature, Config.numberOfBands, Config.hashtableSize);
+        int[] signature = signature(bitVector, Config.NUMBER_OF_HASHFUNCTIONS, Config.HASHTABLE_SIZE);
+        return hashedBandsFromSignature(signature, Config.NUMBER_OF_BANDS, Config.HASHTABLE_SIZE);
     }
     public static BitVector toBitVector(Shingling shingling, int hashtableSize){
         BitVector bitvector = new BitVector(hashtableSize);
