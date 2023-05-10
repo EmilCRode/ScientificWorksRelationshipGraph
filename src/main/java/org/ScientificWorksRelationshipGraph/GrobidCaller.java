@@ -61,7 +61,7 @@ public class GrobidCaller{
             handler.createOrUpdate(work);
         } catch (Exception e) {
             // If an exception is generated, print a stack trace
-            e.printStackTrace();
+            // e.printStackTrace();
         }
     }
     public void close() {

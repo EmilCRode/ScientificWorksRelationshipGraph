@@ -1,5 +1,6 @@
 package org.ScientificWorksRelationshipGraph;
 
+import me.tongfei.progressbar.ProgressBar;
 import org.LocalitySensitiveHashing.Hashing;
 import org.neo4j.ogm.config.Configuration;
 import org.neo4j.ogm.session.Session;
@@ -23,7 +24,12 @@ public class Neo4jHandler {
         session = sessionFactory.openSession();
         hashesInDatabase = new HashMap<>();
         this.hashingHandler = new Hashing();
-        List<Entity> entitiesInDatabase = session.loadAll(Entity.class, 1).stream().toList();
+        List<Work> worksInDatabase = session.loadAll(Work.class, 1).stream().toList();
+        List<Author> authorsInDatabase = session.loadAll(Author.class, 1).stream().toList();
+        List<Entity> entitiesInDatabase = new ArrayList<>();
+        entitiesInDatabase.addAll(worksInDatabase);
+        entitiesInDatabase.addAll(authorsInDatabase);
+        ProgressBar pb = new ProgressBar("Hashing Entities in Database", entitiesInDatabase.size()).start();
         for(Entity entity: entitiesInDatabase){
             int[] currentHashValues = hashingHandler.generateLSHHashValues(entity.compareString());
             for(Integer hashValue: currentHashValues){
@@ -32,7 +38,10 @@ public class Neo4jHandler {
                 currentHashObject.getHashedToThis().add(entity);
                 hashesInDatabase.put(hashValue, currentHashObject);
             }
+            pb.step();
         }
+        pb.stop();
+        System.out.println("Finished hashing Entities in Database");
     }
     private static final int DEPTH_LIST = 0;
     private static final int DEPTH_ENTITY = 3;
@@ -69,7 +78,6 @@ public class Neo4jHandler {
         double currentBestScore = 0;
         double currentScore;
         Set<Entity> candidates = getSimilarCandidates(hashValues, entity.getClass());
-
         for (Entity entityToCompare : candidates) {
             currentScore = entitySimilarity(entity, entityToCompare);
             if (currentScore > currentBestScore) {
