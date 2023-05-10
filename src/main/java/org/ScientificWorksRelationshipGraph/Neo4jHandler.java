@@ -85,7 +85,7 @@ public class Neo4jHandler {
                 closestMatch = entityToCompare;
             }
         }
-        return (currentBestScore > threshhold) ? closestMatch : null;
+        return (currentBestScore >= threshhold) ? closestMatch : null;
     }
     /**
      This method is used to compare two Entities. it returns a value between 0 and 1 (some unexpected floating point behaviour might result in values slightly outside of scope)
@@ -119,6 +119,12 @@ public class Neo4jHandler {
         }
         return candidates;
     }
+    public void addHashesFromEntity(Entity entity){
+        int[] hashValues = this.hashingHandler.generateLSHHashValues(entity.compareString());
+        for(Integer hashValue: hashValues){
+            createOrUpdateHashObject(hashValue, entity);
+        }
+    }
     public LocalitySensitiveHash createOrUpdateHashObject(int hashValue, Entity hashedEntity){
         LocalitySensitiveHash foundInDb = hashesInDatabase.get(hashValue);
         if(foundInDb != null){
@@ -130,6 +136,14 @@ public class Neo4jHandler {
             hashesInDatabase.put(hashValue, newHashObject);
             return newHashObject;
         }
+    }
+    public void mergeAndUpdate(Work newWork, Work existingWork){
+        if(existingWork.getPublicationYear() == -1 && newWork.getPublicationYear() == -1){
+            existingWork.setPublicationYear(newWork.getPublicationYear());
+        }
+    }
+    public void mergeAndUpdate(Author newAuthor, Author existingAuthor){
+
     }
     public Hashing getHashingHandler(){ return this.hashingHandler; }
 }

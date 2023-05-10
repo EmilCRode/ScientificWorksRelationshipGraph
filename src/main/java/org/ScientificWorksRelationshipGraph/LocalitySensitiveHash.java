@@ -47,11 +47,6 @@ public class LocalitySensitiveHash extends Entity{
         this.hashValue = hashValue;
         this.hashedToThis = new ArrayList<>();
     }
-    public LocalitySensitiveHash(int hashValue, Entity initialHashedToThis){
-        this.hashValue = hashValue;
-        this.hashedToThis = new ArrayList<>();
-        this.hashedToThis.add(initialHashedToThis);
-    }
     /**
      *
      * @return a List of all Entities whose compareString has a band of signatures which hashes to this hash.

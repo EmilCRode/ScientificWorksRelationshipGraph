@@ -45,6 +45,7 @@ public class Author extends Entity{
         int[] hashValues = neo4jHandler.getHashingHandler().generateLSHHashValues(author.compareString());
         Author alias = (Author) neo4jHandler.findSimilar(author, hashValues);
         if(alias == null){
+            neo4jHandler.addHashesFromEntity(author);
             return author;
         }
         return alias;

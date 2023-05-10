@@ -93,6 +93,7 @@ public class Work extends Entity{
         int[] hashValues = neo4jHandler.getHashingHandler().generateLSHHashValues(work.compareString());
         Work alias = (Work) neo4jHandler.findSimilar(work, hashValues);
         if(alias == null){
+            neo4jHandler.addHashesFromEntity(work);
             return work;
         }
         return null; //returns null if there is an alias aka a duplicate NEEDS_TEST
@@ -100,6 +101,7 @@ public class Work extends Entity{
     public String getTitle() { return title; }
     public void setTitle(String title) { this.title = title; }
     public int getPublicationYear() { return publicationYear; }
+    public void setPublicationYear(int publicationYear){ this.publicationYear = publicationYear; }
     public int getPublicationMonth() { return publicationMonth; }
     public int getPublicationDay() { return publicationDay; }
     public List<Author> getAuthors() { return authors; }
@@ -142,7 +144,7 @@ public class Work extends Entity{
     public void addAffiliatedOrganization(Organization org){ this.affiliatedOrganisations.add(org); }
      */
     public double compareTo(Work other){
-        int similarityDivident = 9;
+        int similarityDivident = 10;
         if(this.equals(other)){
             System.out.println("Work: " +this.title+ " matched itself");
             return 1;}
@@ -150,11 +152,11 @@ public class Work extends Entity{
             System.out.println("null compared");
             return 0.0;
         }
-        double similarity = 6*Distances.weightedDamerauLevenshteinSimilarity(this.title, other.getTitle());
-        similarity += 3*Distances.compareAuthors(this.authors, other.getAuthors());
+        double similarity = 9*Distances.weightedDamerauLevenshteinSimilarity(this.title, other.getTitle());
+        similarity += 1*Distances.compareAuthors(this.authors, other.getAuthors());
         if(this.doi != null && other.doi != null){
-            similarity += (this.doi.equals(other.doi))? 1 : 0;
-            similarityDivident = similarityDivident + 1;
+            similarity += (this.doi.equals(other.doi))? 10 : 0;
+            similarityDivident += 10;
         }
         /*if(this.publicationDate != null && other.getPublicationDate() != null){
             similarity += (this.publicationDate.compareTo(other.getPublicationDate()) == 0) ? 1 : 0;
