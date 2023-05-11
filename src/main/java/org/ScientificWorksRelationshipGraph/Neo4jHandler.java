@@ -161,57 +161,6 @@ public class Neo4jHandler {
         }
     }
 
-    /**
-     * This method merges a new Work with one that already exists after they are determined to be the same work.
-     * Every field that is set in the new Work that isn't set int the existing one or is set to a default value is set in the existing work.
-     * @param newWork
-     * @param existingWork
-     * @return existing Work with all the values that the new Work has set and the existing one didn't
-     */
-    public Work mergeAndUpdate(Work newWork, Work existingWork){
-        if(existingWork.getPublicationYear() == -1 && newWork.getPublicationYear() != -1){
-            existingWork.setPublicationYear(newWork.getPublicationYear()); }
-        if(existingWork.getPublicationMonth() == -1 && newWork.getPublicationMonth() != -1){
-            existingWork.setPublicationMonth(newWork.getPublicationMonth()); }
-        if(existingWork.getPublicationDay() == -1 && newWork.getPublicationDay() != -1){
-            existingWork.setPublicationDay(newWork.getPublicationDay()); }
-        for(String newSourceFile: newWork.getSourcefiles()){ //Adding all sourcefiles from the newWork to the existing one.
-            if(!existingWork.getSourcefiles().contains(newSourceFile)){ existingWork.addSourcefile(newSourceFile); }
-        }
-        if((existingWork.getDoi() == null || existingWork.getDoi().isBlank()) && (newWork.getDoi() != null && !newWork.getDoi().isBlank())){
-            existingWork.setDoi(newWork.getDoi());}
-        for(Author newAuthor: newWork.getAuthors()){ //Adding all authors from the newWork to the existing one.
-            if(!existingWork.getAuthors().contains(newAuthor)){ existingWork.addAuthor(newAuthor); }
-        }
-        for(Work newCitation: newWork.getCitations()){//Adding all citations from the newWork to the existing one.
-            if(!existingWork.getCitations().contains(newCitation)){ existingWork.addCitation(newCitation);}
-        }
-            return existingWork;
-    }
 
-    /**
-     * This method merges a new Author into one that already exists after they are determined to be the same work.
-     * Every field that is set in the new Author that isn't set int the existing one or is set to a default value is set in the existing Author.
-     * @param newAuthor
-     * @param existingAuthor
-     * @return
-     */
-    public Author mergeAndUpdate(Author newAuthor, Author existingAuthor){
-        if((existingAuthor.getTitle() == null || existingAuthor.getTitle().isBlank()) && (newAuthor.getTitle() != null && !newAuthor.getTitle().isBlank())){
-            existingAuthor.setTitle(newAuthor.getTitle()); }
-        if((existingAuthor.getFirstName() == null || existingAuthor.getFirstName().isBlank()) && (newAuthor.getFirstName() != null && !newAuthor.getFirstName().isBlank())){
-            existingAuthor.setFirstName(newAuthor.getFirstName()); }
-        if((existingAuthor.getLastName() == null || existingAuthor.getLastName().isBlank()) && (newAuthor.getLastName() != null && !newAuthor.getLastName().isBlank())){
-            existingAuthor.setLastName(newAuthor.getLastName()); }
-        if((existingAuthor.getMiddleName() == null || existingAuthor.getMiddleName().isBlank()) && (newAuthor.getMiddleName() != null && !newAuthor.getMiddleName().isBlank())){
-            existingAuthor.setMiddleName(newAuthor.getMiddleName()); }
-        if((existingAuthor.getEmail() == null || existingAuthor.getEmail().isBlank()) && (newAuthor.getEmail() != null && !newAuthor.getEmail().isBlank())){
-            existingAuthor.setEmail(newAuthor.getEmail()); }
-        for(Work newCreatedWork: newAuthor.getCreatedWorks()){
-            if(!existingAuthor.getCreatedWorks().contains(newCreatedWork)){ existingAuthor.addCreatedWork(newCreatedWork); }
-        }
-        existingAuthor.getCreatedWorks().addAll(newAuthor.getCreatedWorks());
-        return existingAuthor;
-    }
     public Hashing getHashingHandler(){ return this.hashingHandler; }
 }

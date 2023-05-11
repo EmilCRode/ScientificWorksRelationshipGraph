@@ -96,7 +96,36 @@ public class Work extends Entity{
             neo4jHandler.addHashesFromEntity(newWork, hashValues);
             return newWork;
         }
-        return neo4jHandler.mergeAndUpdate(newWork, existingWork); //returns null if there is an existingWork aka a duplicate NEEDS_TEST
+        return existingWork.mergeAndUpdate(newWork); //returns null if there is an existingWork aka a duplicate NEEDS_TEST
+    }
+    /**
+     * This method merges a new Work with one that already exists after they are determined to be the same work.
+     * Every field that is set in the new Work that isn't set int the existing one or is set to a default value is set in the existing work.
+     * @param newWork
+     * @return existing Work with all the values that the new Work has set and the existing one didn't
+     */
+    public Work mergeAndUpdate(Work newWork){
+        if(this.getPublicationYear() == -1 && newWork.getPublicationYear() != -1){
+            this.setPublicationYear(newWork.getPublicationYear()); }
+        if(this.getPublicationMonth() == -1 && newWork.getPublicationMonth() != -1){
+            this.setPublicationMonth(newWork.getPublicationMonth()); }
+        if(this.getPublicationDay() == -1 && newWork.getPublicationDay() != -1){
+            this.setPublicationDay(newWork.getPublicationDay()); }
+        for(String newSourceFile: newWork.getSourcefiles()){ //Adding all sourcefiles from the newWork to the existing one.
+            if(!this.getSourcefiles().contains(newSourceFile)){ this.addSourcefile(newSourceFile); }
+        }
+        if((this.getDoi() == null || this.getDoi().isBlank()) && (newWork.getDoi() != null && !newWork.getDoi().isBlank())){
+            this.setDoi(newWork.getDoi());}
+        for(Author newAuthor: newWork.getAuthors()){ //Adding all authors from the newWork to the existing one.
+            if(!this.getAuthors().contains(newAuthor)){
+                this.addAuthor(newAuthor);
+            }
+            newAuthor.getCreatedWorks().remove(newWork);
+        }
+        for(Work newCitation: newWork.getCitations()){//Adding all citations from the newWork to the existing one.
+            if(!this.getCitations().contains(newCitation)){ this.addCitation(newCitation);}
+        }
+        return this;
     }
     public String getTitle() { return title; }
     public void setTitle(String title) { this.title = title; }

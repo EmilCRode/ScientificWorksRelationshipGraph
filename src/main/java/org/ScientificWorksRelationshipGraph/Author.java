@@ -50,7 +50,33 @@ public class Author extends Entity{
             neo4jHandler.addHashesFromEntity(newAuthor, hashValues);
             return newAuthor;
         }
-        return neo4jHandler.mergeAndUpdate(newAuthor, existingAuthor);
+        return existingAuthor.mergeAndUpdate(newAuthor);
+    }
+    /**
+     * This method merges a new Author into one that already exists after they are determined to be the same work.
+     * Every field that is set in the new Author that isn't set int the existing one or is set to a default value is set in the existing Author.
+     * @param newAuthor
+     * @return
+     */
+    public Author mergeAndUpdate(Author newAuthor){
+        if((this.getTitle() == null || this.getTitle().isBlank()) && (newAuthor.getTitle() != null && !newAuthor.getTitle().isBlank())){
+            this.setTitle(newAuthor.getTitle()); }
+        if((this.getFirstName() == null || this.getFirstName().isBlank()) && (newAuthor.getFirstName() != null && !newAuthor.getFirstName().isBlank())){
+            this.setFirstName(newAuthor.getFirstName()); }
+        if((this.getLastName() == null || this.getLastName().isBlank()) && (newAuthor.getLastName() != null && !newAuthor.getLastName().isBlank())){
+            this.setLastName(newAuthor.getLastName()); }
+        if((this.getMiddleName() == null || this.getMiddleName().isBlank()) && (newAuthor.getMiddleName() != null && !newAuthor.getMiddleName().isBlank())){
+            this.setMiddleName(newAuthor.getMiddleName()); }
+        if((this.getEmail() == null || this.getEmail().isBlank()) && (newAuthor.getEmail() != null && !newAuthor.getEmail().isBlank())){
+            this.setEmail(newAuthor.getEmail()); }
+        for(Work newCreatedWork: newAuthor.getCreatedWorks()){
+            if(!this.getCreatedWorks().contains(newCreatedWork)){
+                this.addCreatedWork(newCreatedWork);
+                newCreatedWork.getAuthors().remove(newAuthor);
+            }
+        }
+        this.getCreatedWorks().addAll(newAuthor.getCreatedWorks());
+        return this;
     }
     public String getFirstName(){ return firstName; }
     public void setFirstName(String firstName){ this.firstName = firstName; }
