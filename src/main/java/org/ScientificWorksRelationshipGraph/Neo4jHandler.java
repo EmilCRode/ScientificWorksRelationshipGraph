@@ -207,6 +207,9 @@ public class Neo4jHandler {
             existingAuthor.setMiddleName(newAuthor.getMiddleName()); }
         if((existingAuthor.getEmail() == null || existingAuthor.getEmail().isBlank()) && (newAuthor.getEmail() != null && !newAuthor.getEmail().isBlank())){
             existingAuthor.setEmail(newAuthor.getEmail()); }
+        for(Work newCreatedWork: newAuthor.getCreatedWorks()){
+            if(!existingAuthor.getCreatedWorks().contains(newCreatedWork)){ existingAuthor.addCreatedWork(newCreatedWork); }
+        }
         existingAuthor.getCreatedWorks().addAll(newAuthor.getCreatedWorks());
         return existingAuthor;
     }

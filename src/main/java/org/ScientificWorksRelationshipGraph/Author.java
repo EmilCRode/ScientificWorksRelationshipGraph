@@ -21,7 +21,7 @@ public class Author extends Entity{
     @Property("email")
     private String email;
     @Relationship(type="AUTHORED")
-    private Set<Work> createdWorks;
+    private List<Work> createdWorks;
     /*@Relationship(type="AFFILIATED", direction=Relationship.UNDIRECTED)
     private List<Organization> affiliatedOrganizations;*/
     public Author(){}
@@ -31,7 +31,7 @@ public class Author extends Entity{
         if(person.getMiddleName() != null) this.middleName = person.getMiddleName().replaceAll("\\b(et|Et)\\b","");
         if(person.getLastName() != null) this.lastName = person.getLastName().replaceAll("\\b(et|Et)\\b","");
         this.email = person.getEmail();
-        this.createdWorks = new HashSet<>();
+        this.createdWorks = new ArrayList<>();
         /*this.affiliatedOrganizations = new ArrayList<>();
         List<Affiliation> affiliationsToProcess= person.getAffiliations();
         if(affiliationsToProcess != null) {
@@ -60,8 +60,8 @@ public class Author extends Entity{
     public void setLastName(String lastName){ this.lastName = lastName;}
     public String getEmail() { return email; }
     public void setEmail(String email) { this.email = email; }
-    public Set<Work> getCreatedWorks(){ return createdWorks; }
-    public void setCreatedWorks(Set<Work> createdWorks){ this.createdWorks = createdWorks; }
+    public List<Work> getCreatedWorks(){ return createdWorks; }
+    public void setCreatedWorks(List<Work> createdWorks){ this.createdWorks = createdWorks; }
     public void addCreatedWork(Work work){ this.createdWorks.add(work); }
     public String getTitle(){ return title; }
     public void setTitle(String title){ this.title = title; }
