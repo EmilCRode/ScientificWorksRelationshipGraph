@@ -46,7 +46,6 @@ public class GrobidCaller{
                 return;
             }*/
             Work work = Work.createUniqueWork(resHeader, handler, pdfFile.getName());
-            if(work == null){return;}//Remove when MERGE is implemented
             work.setDiscipline(discipline);
             work.setJournal(journal);
             //Adding all the citations to the Work representing the PDF

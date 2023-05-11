@@ -3,6 +3,7 @@ package org.ScientificWorksRelationshipGraph;
 import org.apache.commons.text.similarity.CosineDistance;
 
 import java.util.List;
+import java.util.Set;
 
 public class Distances {
     /**

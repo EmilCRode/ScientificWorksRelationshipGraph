@@ -29,7 +29,7 @@ public class Work extends Entity{
     @Property
     private String journal;
     @Property
-    private ArrayList<String> sourcefiles;
+    private Set<String> sourcefiles;
     @Property
     private String fullGrobidDataString;
     @Property
@@ -40,12 +40,12 @@ public class Work extends Entity{
     private List<Organization> affiliatedOrganisations;
     */
     @Relationship("CITES")
-    private Set<Work> citations;
+    private List<Work> citations;
     public Work(){
-        this.title = null;
+        this.title = title;
         this.authors = new ArrayList<>();
-        this.citations = new HashSet<>();
-        this.sourcefiles = new ArrayList<>();
+        this.citations = new ArrayList<>();
+        this.sourcefiles = new HashSet<>();
         //this.affiliatedOrganisations = new ArrayList<>();
     }
     public Work(BiblioItem bibItem, Neo4jHandler neo4jHandler, String sourcefile)throws IllegalAccessException{
@@ -67,8 +67,8 @@ public class Work extends Entity{
                 }
             }
         }
-        this.citations = new HashSet<>();
-        this.sourcefiles = new ArrayList<>();
+        this.citations = new ArrayList<>();
+        this.sourcefiles = new HashSet<>();
         this.sourcefiles.add(sourcefile);
         //this.fullGrobidDataString = bibItem.toString().replaceAll("\\w*='*null'*,*","");
         Date grobidDate = bibItem.getNormalizedPublicationDate();
@@ -89,36 +89,27 @@ public class Work extends Entity{
     }
     public static Work createUniqueWork(BiblioItem bibItem, Neo4jHandler neo4jHandler, String sourcefile)throws IllegalAccessException{
         if(StringUtils.isBlank(bibItem.getTitle())){ return null; }
-        Work work = new Work(bibItem, neo4jHandler, sourcefile);
-        int[] hashValues = neo4jHandler.getHashingHandler().generateLSHHashValues(work.compareString());
-        Work alias = (Work) neo4jHandler.findSimilar(work, hashValues);
-        if(alias == null){
-            neo4jHandler.addHashesFromEntity(work);
-            return work;
+        Work newWork = new Work(bibItem, neo4jHandler, sourcefile);
+        int[] hashValues = neo4jHandler.getHashingHandler().generateLSHHashValues(newWork.compareString());
+        Work existingWork = (Work) neo4jHandler.findSimilar(newWork, hashValues);
+        if(existingWork == null){
+            neo4jHandler.addHashesFromEntity(newWork, hashValues);
+            return newWork;
         }
-        return null; //returns null if there is an alias aka a duplicate NEEDS_TEST
+        return neo4jHandler.mergeAndUpdate(newWork, existingWork); //returns null if there is an existingWork aka a duplicate NEEDS_TEST
     }
     public String getTitle() { return title; }
     public void setTitle(String title) { this.title = title; }
     public int getPublicationYear() { return publicationYear; }
     public void setPublicationYear(int publicationYear){ this.publicationYear = publicationYear; }
     public int getPublicationMonth() { return publicationMonth; }
+    public void setPublicationMonth(int publicationMonth) { this.publicationMonth = publicationMonth; }
+    public void setPublicationDay(int publicationDay) { this.publicationDay = publicationDay; }
     public int getPublicationDay() { return publicationDay; }
     public List<Author> getAuthors() { return authors; }
-    public void setAuthors(List<Author> authors) { this.authors = authors; }
     public void addAuthor(Author author){ this.authors.add(author); }
-    public Set<Work> getCitations() { return citations; }
-    public void setCitations(Set<Work> citations) { this.citations = citations; }
+    public List<Work> getCitations() { return citations; }
     public void addCitation(Work citedWork){ this.citations.add(citedWork); }
-    /*public java.util.Date getPublicationDate() { return publicationDate; }
-    public void setPublicationDate(Date publicationDate) {
-        this.publicationDate = publicationDate;
-        if(this.publicationDate != null) {
-            this.publicationYear = publicationDate.getYear();
-            this.publicationMonth = publicationDate.getMonth();
-            this.publicationDay = publicationDate.getDay();
-        }
-    }*/
     public String getDiscipline() { return discipline; }
     public void setDiscipline(String discipline) { this.discipline = discipline; }
     public String getJournal() {
@@ -128,15 +119,12 @@ public class Work extends Entity{
         this.journal = journal;
     }
     public String getFullGrobidDataString() { return fullGrobidDataString; }
-    public ArrayList<String> getSourcefiles() {
+    public Set<String> getSourcefiles() {
         return sourcefiles;
     }
+    public void addSourcefile(String newSourceFile){ this.sourcefiles.add(newSourceFile); }
     public String getDoi() { return doi; }
     public void setDoi(String doi) { this.doi = doi; }
-    public void setSourcefiles(ArrayList<String> sourcefiles) {
-        this.sourcefiles = sourcefiles;
-    }
-    public void setFullGrobidDataString(String fullGrobidDataString) { this.fullGrobidDataString = fullGrobidDataString; }
     /*public List<Organization> getAffiliatedOrganisations() { return affiliatedOrganisations; }
 
     public void setAffiliatedOrganisations(List<Organization> affiliatedOrganisations) { this.affiliatedOrganisations = affiliatedOrganisations; }
@@ -154,6 +142,7 @@ public class Work extends Entity{
         }
         double similarity = 9*Distances.weightedDamerauLevenshteinSimilarity(this.title, other.getTitle());
         similarity += 1*Distances.compareAuthors(this.authors, other.getAuthors());
+
         if(this.doi != null && other.doi != null){
             similarity += (this.doi.equals(other.doi))? 10 : 0;
             similarityDivident += 10;
