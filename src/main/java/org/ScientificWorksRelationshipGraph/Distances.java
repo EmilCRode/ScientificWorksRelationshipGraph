@@ -15,7 +15,7 @@ public class Distances {
      * @return The distance between source and target strings.
      * @throws IllegalArgumentException If either source or target is null.
      */
-    public static int damerauLevenshteinDistance(CharSequence source, CharSequence target) {
+    public static int damerauLevenshteinDistance(String source, String target) {
         if (source == null || target == null) {
             throw new IllegalArgumentException("Parameter must not be null");
         }
@@ -44,13 +44,25 @@ public class Distances {
         }
         return dist[sourceLength][targetLength];
     }
-    public static double weightedDamerauLevenshteinSimilarity(CharSequence source, CharSequence target){
+    public static double weightedDamerauLevenshteinSimilarity(String source, String target){
         if (source == null || target == null) {
-            return (source == null && target == null)? 1 : 0;
+            return (source == null && target == null)? 1 : -1;
+        }
+        if (source.isBlank() || target.isBlank()){
+            return (source.isBlank() && target.isBlank()) ? 1 : -1;
+        }
+        double avglength = (source.length() + target.length()) / 2;
+        double distance = damerauLevenshteinDistance(source, target);
+        return 1- (distance / (avglength));
+    }
+    public static double weightedDamerauLevenshteinSimilaritySubstring(String source, String target, int divisor){
+        if (source == null || target == null) {
+            return (source == null && target == null)? 1 : -1;
         }
         if (source.isEmpty() || target.isEmpty()){
-            return (source.isEmpty() && target.isEmpty()) ? 1 : 0;
+            return (source.isBlank() && target.isBlank()) ? 1 : -1;
         }
+        if(source.contains(target) || target.contains(source)){ return 1;}
         double avglength = (source.length() + target.length()) / 2;
         double distance = damerauLevenshteinDistance(source, target);
         return 1- (distance / (avglength));
@@ -62,7 +74,7 @@ public class Distances {
     }
     public static double compareAuthors(List<Author> authors1, List<Author> authors2){
         if(authors1.equals(authors2)){ return 1.0; }
-        if((authors2 == null || authors1 == null) || (authors1.isEmpty() || authors2.isEmpty())){ return 0.5; }
+        if((authors2 == null || authors1 == null) || (authors1.isEmpty() || authors2.isEmpty())){ return -1; }
         int counter = 0;
         double matchingAuthors = 0;
         for (Author authorX: authors1) {

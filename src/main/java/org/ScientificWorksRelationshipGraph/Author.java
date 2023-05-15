@@ -109,11 +109,25 @@ public class Author extends Entity{
     }
     public double compareTo(Author other){
         if(this.equals(other)){ return 1; }
-        double similarity = Distances.weightedDamerauLevenshteinSimilarity(this.firstName, other.getFirstName());
-        similarity += Distances.weightedDamerauLevenshteinSimilarity(this.middleName, other.getMiddleName());
-        similarity += Distances.weightedDamerauLevenshteinSimilarity(this.lastName, other.getLastName());
-        similarity += Distances.weightedDamerauLevenshteinSimilarity(this.title, other.getTitle());
-        return similarity / 4;
+        int divisor = 0;
+        double similarity = 0;
+        double currentDistance;
+        currentDistance = Distances.weightedDamerauLevenshteinSimilaritySubstring(this.firstName, other.getFirstName(),divisor);
+        if(currentDistance != -1){
+            similarity += currentDistance;
+            divisor ++;
+        }
+        currentDistance = Distances.weightedDamerauLevenshteinSimilaritySubstring(this.middleName, other.getMiddleName(),divisor);
+        if(currentDistance != -1){
+            similarity += currentDistance;
+            divisor ++;
+        }
+        currentDistance = Distances.weightedDamerauLevenshteinSimilaritySubstring(this.lastName, other.getLastName(),divisor);
+        if(currentDistance != -1){
+            similarity += currentDistance;
+            divisor ++;
+        }
+        return (divisor == 0)? 0 : similarity / divisor;
     }
     @Override
     public String compareString(){

@@ -161,25 +161,38 @@ public class Work extends Entity{
     public void addAffiliatedOrganization(Organization org){ this.affiliatedOrganisations.add(org); }
      */
     public double compareTo(Work other){
-        int similarityDivident = 10;
+        int divisor = 0;
+        double similarity = 0;
+        //Check for Object-equality
         if(this.equals(other)){
             System.out.println("Work: " +this.title+ " matched itself");
             return 1;}
+        //Check if either is null
         if(this == null || other == null){
             System.out.println("null compared");
             return 0.0;
         }
-        double similarity = 9*Distances.weightedDamerauLevenshteinSimilarity(this.title, other.getTitle());
-        similarity += 1*Distances.compareAuthors(this.authors, other.getAuthors());
-
+        //Title compare
+        double currentDistance = Distances.weightedDamerauLevenshteinSimilarity(this.title, other.getTitle());
+        if(currentDistance != -1){
+            similarity += currentDistance * 9;
+            divisor += 9;
+        }
+        //Author Compare
+        currentDistance = Distances.compareAuthors(this.authors, other.getAuthors());
+        if(currentDistance != -1){
+            similarity += currentDistance;
+            divisor ++;
+        }
+        //DOI Compare
         if(this.doi != null && other.doi != null){
-            similarity += (this.doi.equals(other.doi))? 10 : 0;
-            similarityDivident += 10;
+            similarity += (this.doi.equals(other.doi))? 9 : 0;
+            divisor += 9;
         }
         /*if(this.publicationDate != null && other.getPublicationDate() != null){
             similarity += (this.publicationDate.compareTo(other.getPublicationDate()) == 0) ? 1 : 0;
         } else { similarity += (this.publicationDate == null || other.getPublicationDate() == null) ? 0 : 1;}*/
-        return similarity / similarityDivident;
+        return similarity / divisor;
     }
     @Override
     public String toString() {
