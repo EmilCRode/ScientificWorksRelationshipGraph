@@ -60,6 +60,7 @@ public class Work extends Entity{
         Author currentAuthor;
         if(authorsToProcess!= null){
             for (Person person : authorsToProcess) {
+                if(person.getORCID()!= null){ System.out.println(person.getORCID()); }
                 currentAuthor = Author.CreateUniqueAuthor(person, neo4jHandler);
                 if(currentAuthor != null) {
                     currentAuthor.addCreatedWork(this);
@@ -209,6 +210,6 @@ public class Work extends Entity{
     }
     @Override
     public String compareString(){
-        return this.title;
+        return this.title.toLowerCase();
     }
 }

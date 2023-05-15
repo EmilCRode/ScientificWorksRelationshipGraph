@@ -80,10 +80,9 @@ public class Hashing {
      * @param key the key to be digested by the hashfunctions
      * @return a List of hashvalues one for each hashfunction
      */
-    public static int hashFunction(int hashFunctionIndex, int numBuckets, Object key) {
+    public static int hashFunction(int hashFunctionIndex, int numBuckets, int key) {
         int seed = hashFunctionIndex; // use a different seed for each hash function
-        byte[] bytes = key.toString().getBytes(StandardCharsets.UTF_8);
-        int hash = MurmurHash3.hash32x86(bytes, 0, bytes.length, seed);
+        int hash = MurmurHash3.hash32(key, seed);
         return Math.abs(hash % numBuckets)%numBuckets; // return only positive values in the bucketrange
     }
 }

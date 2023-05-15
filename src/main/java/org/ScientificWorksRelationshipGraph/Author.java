@@ -4,9 +4,7 @@ import org.grobid.core.data.Person;
 import org.neo4j.ogm.annotation.*;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 @NodeEntity
 public class Author extends Entity{
@@ -20,17 +18,20 @@ public class Author extends Entity{
     private String middleName;
     @Property("email")
     private String email;
+    @Property("orcid")
+    private String orcid;
     @Relationship(type="AUTHORED")
     private List<Work> createdWorks;
     /*@Relationship(type="AFFILIATED", direction=Relationship.UNDIRECTED)
     private List<Organization> affiliatedOrganizations;*/
     public Author(){}
-    public Author(Person person){
-        this.title = person.getTitle();
-        if(person.getFirstName()!= null) this.firstName = person.getFirstName().replaceAll("\\b(et|Et)\\b","");
-        if(person.getMiddleName() != null) this.middleName = person.getMiddleName().replaceAll("\\b(et|Et)\\b","");
-        if(person.getLastName() != null) this.lastName = person.getLastName().replaceAll("\\b(et|Et)\\b","");
-        this.email = person.getEmail();
+    public Author(String title, String firstName, String middleName, String lastName, String email, String orcid){
+        this.title = (title == null) ? null : title.replaceAll("[^a-zA-Z ]", "");
+        this.firstName = firstName.replaceAll("\\b(et|Et)\\b","");
+        this.middleName = (middleName == null) ? null : middleName.replaceAll("\\b(et|Et)\\b","");
+        this.lastName = lastName.replaceAll("\\b(et|Et)\\b","");
+        this.email = email;
+        this.orcid = orcid;
         this.createdWorks = new ArrayList<>();
         /*this.affiliatedOrganizations = new ArrayList<>();
         List<Affiliation> affiliationsToProcess= person.getAffiliations();
@@ -41,9 +42,13 @@ public class Author extends Entity{
         }*/
     }
     public static Author CreateUniqueAuthor(Person person, Neo4jHandler neo4jHandler)throws IllegalAccessException{
-        Author newAuthor = new Author(person);
-        if(newAuthor.firstName == null || newAuthor.lastName == null){return null;}
-        if(newAuthor.firstName.isBlank()|| newAuthor.lastName.isBlank()){return null;}
+        String firstName = (person.getFirstName() == null) ? null : person.getFirstName().replaceAll("[^a-zA-Z ]","").trim();
+        String middleName = (person.getMiddleName() == null) ? null : person.getMiddleName().replaceAll("[^a-zA-Z ]","").trim();
+        String lastName = (person.getLastName() == null) ? null : person.getLastName().replaceAll("[^a-zA-Z ]","").trim();
+        if(firstName == null || lastName == null){return null;}
+        if(firstName.isBlank()|| lastName.isBlank()){return null;}
+        Author newAuthor = new Author(person.getTitle(),firstName,middleName,lastName, person.getEmail(), person.getORCID());
+        //Searching for duplicates
         int[] hashValues = neo4jHandler.getHashingHandler().generateLSHHashValues(newAuthor.compareString());
         Author existingAuthor = (Author) neo4jHandler.findSimilar(newAuthor, hashValues);
         if(existingAuthor == null){
@@ -60,15 +65,32 @@ public class Author extends Entity{
      */
     public Author mergeAndUpdate(Author newAuthor){
         if((this.getTitle() == null || this.getTitle().isBlank()) && (newAuthor.getTitle() != null && !newAuthor.getTitle().isBlank())){
-            this.setTitle(newAuthor.getTitle()); }
-        if((this.getFirstName() == null || this.getFirstName().isBlank()) && (newAuthor.getFirstName() != null && !newAuthor.getFirstName().isBlank())){
-            this.setFirstName(newAuthor.getFirstName()); }
-        if((this.getLastName() == null || this.getLastName().isBlank()) && (newAuthor.getLastName() != null && !newAuthor.getLastName().isBlank())){
-            this.setLastName(newAuthor.getLastName()); }
-        if((this.getMiddleName() == null || this.getMiddleName().isBlank()) && (newAuthor.getMiddleName() != null && !newAuthor.getMiddleName().isBlank())){
-            this.setMiddleName(newAuthor.getMiddleName()); }
-        if((this.getEmail() == null || this.getEmail().isBlank()) && (newAuthor.getEmail() != null && !newAuthor.getEmail().isBlank())){
-            this.setEmail(newAuthor.getEmail()); }
+            this.setTitle(newAuthor.getTitle());
+        }
+        if((this.firstName == null || this.firstName.isBlank()) && (newAuthor.firstName != null && !newAuthor.firstName.isBlank())){
+            this.setFirstName(newAuthor.firstName);
+        } else if(newAuthor.firstName != null && newAuthor.firstName.contains(this.firstName)){
+            //Update Abbreviation with Full String
+            this.firstName= newAuthor.firstName;
+        }
+        if((this.lastName == null || this.lastName.isBlank()) && (newAuthor.lastName != null && !newAuthor.lastName.isBlank())){
+            this.setLastName(newAuthor.getLastName());
+        } else if(newAuthor.lastName != null && newAuthor.lastName.contains(this.lastName)){
+            //Update Abbreviation with Full String
+            this.lastName = newAuthor.lastName;
+        }
+        if((this.middleName == null || this.middleName.isBlank()) && (newAuthor.middleName != null && !newAuthor.middleName.isBlank())){
+            this.setMiddleName(newAuthor.middleName);
+        } else if(newAuthor.middleName != null && newAuthor.middleName.contains(this.middleName)){
+        //Update Abbreviation with Full String
+        this.middleName = newAuthor.middleName;
+        }
+        if((this.email == null || this.email.isBlank()) && (newAuthor.email != null && !newAuthor.email.isBlank())){
+            this.email =newAuthor.email;
+        }
+        if((this.orcid == null || this.orcid.isBlank()) && (newAuthor.orcid != null && !newAuthor.orcid.isBlank())){
+            this.orcid = newAuthor.orcid;
+        }
         for(Work newCreatedWork: newAuthor.getCreatedWorks()){
             if(!this.getCreatedWorks().contains(newCreatedWork)){
                 this.addCreatedWork(newCreatedWork);
@@ -80,11 +102,11 @@ public class Author extends Entity{
     }
     public String getFirstName(){ return firstName; }
     public void setFirstName(String firstName){ this.firstName = firstName; }
-    public String getMiddleName(){ return middleName; }
+    public String middleName(){ return middleName; }
     public void setMiddleName(String middleName){ this.middleName = middleName; }
     public String getLastName(){ return lastName; }
     public void setLastName(String lastName){ this.lastName = lastName;}
-    public String getEmail() { return email; }
+    public String email() { return email; }
     public void setEmail(String email) { this.email = email; }
     public List<Work> getCreatedWorks(){ return createdWorks; }
     public void setCreatedWorks(List<Work> createdWorks){ this.createdWorks = createdWorks; }
@@ -117,7 +139,7 @@ public class Author extends Entity{
             similarity += currentDistance;
             divisor ++;
         }
-        currentDistance = Distances.weightedDamerauLevenshteinSimilaritySubstring(this.middleName, other.getMiddleName(),divisor);
+        currentDistance = Distances.weightedDamerauLevenshteinSimilaritySubstring(this.middleName, other.middleName(),divisor);
         if(currentDistance != -1){
             similarity += currentDistance;
             divisor ++;
@@ -127,14 +149,18 @@ public class Author extends Entity{
             similarity += currentDistance;
             divisor ++;
         }
+        if(this.orcid != null && !this.orcid.isBlank() && other.orcid != null && !other.orcid.isBlank() && this.orcid.equals(other.orcid)){
+            similarity += 7;
+            divisor += 7;
+        }
         return (divisor == 0)? 0 : similarity / divisor;
     }
     @Override
     public String compareString(){
-        return this.title +
+        return (this.title +
                 this.firstName +
                 this.middleName +
                 this.lastName +
-                this.email;
+                this.email).toLowerCase();
     }
 }
